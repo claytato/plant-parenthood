@@ -1,0 +1,1 @@
+export const onRequest = () => new Response("hello from the function")
