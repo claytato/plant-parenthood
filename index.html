@@ -1,1 +1,116 @@
-<h1>Plant Parenthood</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plant Parenthood</title>
+</head>
+<body>
+  <h1>Plant Parenthood</h1>
+
+  <h2>Add a plant</h2>
+  <form id="add-form">
+    <p><label>Name <input name="name" required /></label></p>
+    <p><label>Species <input name="species" /></label></p>
+    <p><label>Area <input name="area" required /></label></p>
+    <p><label>Watering type <input name="watering_type" required /></label></p>
+    <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" required /></label></p>
+    <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
+    
+    <button type="submit">Add plant</button>
+  </form>
+
+  <h2>Your plants</h2>
+  <ul id="plant-list"></ul>
+
+  <h2>Backup</h2>
+  <p>
+    <button id="export-btn">Export JSON</button>
+    <label> Import JSON: <input type="file" id="import-input" accept="application/json" /></label>
+  </p>
+
+  <script>
+    const STORAGE_KEY = "plants";
+
+    function loadPlants() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function savePlants(plants) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+    }
+
+    function renderList() {
+      const plants = loadPlants();
+      const ul = document.getElementById("plant-list");
+      ul.innerHTML = "";
+      if (plants.length === 0) {
+        ul.innerHTML = "<li>No plants yet. Add one above.</li>";
+        return;
+      }
+      for (const plant of plants) {
+        const li = document.createElement("li");
+        li.textContent =
+          plant.name +
+          (plant.species ? " (" + plant.species + ")" : "") +
+          " — " + plant.area +
+          " — " + plant.watering_type +
+          ", every " + plant.interval_days + " days" +
+          ", last watered " + plant.last_watered;
+        ul.appendChild(li);
+      }
+    }
+
+    document.getElementById("add-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const plant = {
+        id: "plant-" + Date.now(),
+        name: formData.get("name"),
+        species: formData.get("species"),
+        area: formData.get("area"),
+        watering_type: formData.get("watering_type"),
+        interval_days: Number(formData.get("interval_days")),
+        last_watered: formData.get("last_watered"),
+      };
+      const plants = loadPlants();
+      plants.push(plant);
+      savePlants(plants);
+      e.target.reset();
+      renderList();
+    });
+
+    document.getElementById("export-btn").addEventListener("click", function () {
+      const plants = loadPlants();
+      const blob = new Blob([JSON.stringify(plants, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "plants.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("import-input").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        try {
+          const imported = JSON.parse(reader.result);
+          if (!Array.isArray(imported)) throw new Error("Imported file must be an array of plants");
+          savePlants(imported);
+          renderList();
+          alert("Imported " + imported.length + " plants.");
+        } catch (err) {
+          alert("Could not import: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    renderList();
+  </script>
+</body>
+</html>
