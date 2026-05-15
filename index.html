@@ -33,7 +33,13 @@
     }
     .plant-info { flex: 1; min-width: 0; }
     .plant-name { cursor: pointer; text-decoration: underline dotted; }
-    .plant-actions button { margin-left: 4px; font-size: 12px; }
+    .plant-actions button { margin-left: 4px; font-size: 12px; transition: background 150ms ease, color 150ms ease, border-color 150ms ease; }
+    .plant-actions .btn-selected-water {
+      background: #2e7d32; color: #fff; border-color: #2e7d32;
+    }
+    .plant-actions .btn-selected-skip {
+      background: #1976d2; color: #fff; border-color: #1976d2;
+    }
     .plant-checkbox { margin-right: 6px; transform: scale(1.2); cursor: pointer; }
     .area-actions { font-size: 12px; font-weight: normal; margin-left: 8px; }
     .area-actions button { font-size: 11px; padding: 2px 6px; margin-left: 2px; }
@@ -48,12 +54,17 @@
     .detail-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
     .detail-actions form { margin-left: auto; margin-bottom: 0; }
 
+    /* Selection bar: always rendered, slides up via transform when active. */
     #selection-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: #333; color: #fff; padding: 10px 16px;
-      display: none; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       gap: 12px; flex-wrap: wrap;
+      transform: translateY(110%);
+      transition: transform 220ms ease-out;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
     }
+    #selection-bar.visible { transform: translateY(0); }
     #selection-bar button { font-size: 14px; padding: 6px 12px; }
     #selection-bar .count { font-weight: bold; }
   </style>
@@ -165,7 +176,18 @@
     function loadPlants() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
+        if (!raw) return [];
+        const plants = JSON.parse(raw);
+        // Migration: ensure each plant has history, and seed initial watered entry
+        // from last_watered if no watered entries exist yet.
+        for (const plant of plants) {
+          if (!plant.history) plant.history = [];
+          const hasWatered = plant.history.some(function (h) { return h.status === "watered"; });
+          if (plant.last_watered && !hasWatered) {
+            plant.history.push({ date: plant.last_watered, status: "watered" });
+          }
+        }
+        return plants;
       } catch (e) { return []; }
     }
     function savePlants(plants) {
@@ -222,6 +244,31 @@
       return { label: "Due in " + diff + " day" + (diff === 1 ? "" : "s"), cls: "", needsWater: false };
     }
 
+    // --- History-derived state ---
+    // History is the source of truth. last_watered and next_check_override are derived.
+    function getActionForDate(plant, date) {
+      if (!plant.history) return null;
+      const entry = plant.history.find(function (h) { return h.date === date; });
+      return entry ? entry.status : null;
+    }
+    function recomputePlantState(plant) {
+      if (!plant.history || plant.history.length === 0) {
+        plant.last_watered = null;
+        plant.next_check_override = null;
+        return;
+      }
+      // Sort newest first
+      plant.history.sort(function (a, b) { return b.date.localeCompare(a.date); });
+      const lastWateredEntry = plant.history.find(function (h) { return h.status === "watered"; });
+      plant.last_watered = lastWateredEntry ? lastWateredEntry.date : null;
+      const lastEntry = plant.history[0];
+      if (lastEntry.status === "skipped_damp") {
+        plant.next_check_override = addDays(lastEntry.date, 1);
+      } else {
+        plant.next_check_override = null;
+      }
+    }
+
     function resizeImage(file, maxDim) {
       maxDim = maxDim || 200;
       return new Promise(function (resolve, reject) {
@@ -246,11 +293,23 @@
     }
 
     function plantRowHTML(plant) {
-      const status = dueStatus(plant, selectedDate);
+      const dateToUse = selectedDate || todayISO();
+      const status = dueStatus(plant, dateToUse);
       const isSelected = selectedPlantIds.has(plant.id);
+      const actionTaken = getActionForDate(plant, dateToUse);
+
+      const wateredSelected = actionTaken === "watered";
+      const skipSelected = actionTaken === "skipped_damp";
+
+      const wateredClass = wateredSelected ? "btn-selected-water" : "";
+      const skipClass = skipSelected ? "btn-selected-skip" : "";
+      const wateredLabel = (wateredSelected ? "&#10003; " : "") + "Watered";
+      const skipLabel = (skipSelected ? "&#10003; " : "") + "Skip (damp)";
+
       const photoHTML = plant.photo
         ? '<img class="plant-thumb" src="' + plant.photo + '" alt="" />'
         : '<span class="plant-thumb"></span>';
+
       return (
         '<div class="plant-row" data-plant-id="' + escapeHtml(plant.id) + '">' +
           '<input type="checkbox" class="plant-checkbox" data-action="toggle-select"' + (isSelected ? ' checked' : '') + ' />' +
@@ -263,8 +322,8 @@
             ' &middot; ' + escapeHtml(plant.area || "") +
           '</div>' +
           '<div class="plant-actions">' +
-            '<button type="button" data-action="water" data-status="watered">Watered</button>' +
-            '<button type="button" data-action="water" data-status="skipped_damp">Skip (damp)</button>' +
+            '<button type="button" class="' + wateredClass + '" data-action="water" data-status="watered">' + wateredLabel + '</button>' +
+            '<button type="button" class="' + skipClass + '" data-action="water" data-status="skipped_damp">' + skipLabel + '</button>' +
           '</div>' +
         '</div>'
       );
@@ -307,9 +366,9 @@
       if (!bar) return;
       const count = selectedPlantIds.size;
       if (count === 0) {
-        bar.style.display = "none";
+        bar.classList.remove("visible");
       } else {
-        bar.style.display = "flex";
+        bar.classList.add("visible");
         const c = document.getElementById("selection-count");
         if (c) c.textContent = count + " selected";
       }
@@ -324,24 +383,26 @@
       }
     }
 
-    function applyWaterStatusToPlant(plant, status, today) {
-      plant.history = plant.history || [];
-      plant.history.unshift({ date: today, status: status });
-      if (status === "watered") {
-        plant.last_watered = today;
-        plant.next_check_override = null;
-      } else if (status === "skipped_damp") {
-        plant.next_check_override = addDays(today, 1);
-      }
-    }
+    // --- Watering action: toggle behavior on per-row buttons ---
     function waterPlant(plantId, status) {
+      const dateToUse = selectedDate || todayISO();
       const plants = loadPlants();
       const plant = plants.find(function (p) { return p.id === plantId; });
       if (!plant) return;
-      applyWaterStatusToPlant(plant, status, todayISO());
+      plant.history = plant.history || [];
+      const existingAction = getActionForDate(plant, dateToUse);
+      // Remove any existing entry for this date
+      plant.history = plant.history.filter(function (h) { return h.date !== dateToUse; });
+      // If the existing action matches the clicked status, we're toggling off (revert).
+      // Otherwise, add the new entry (apply / replace).
+      if (existingAction !== status) {
+        plant.history.unshift({ date: dateToUse, status: status });
+      }
+      recomputePlantState(plant);
       savePlants(plants);
       renderAll();
     }
+
     function deletePlant(plantId) {
       if (!confirm("Delete this plant?")) return;
       savePlants(loadPlants().filter(function (p) { return p.id !== plantId; }));
@@ -371,8 +432,8 @@
         '<p>Area: ' + escapeHtml(plant.area || "(none)") + '</p>' +
         '<p>Watering type: ' + escapeHtml(plant.watering_type || "—") + '</p>' +
         '<p>Interval: every ' + plant.interval_days + ' days</p>' +
-        '<p>Last watered: ' + escapeHtml(plant.last_watered) + '</p>' +
-        '<p>Next due: ' + nextDueISO(plant) + ' (<span class="' + status.cls + '">' + status.label + '</span>)</p>' +
+        '<p>Last watered: ' + escapeHtml(plant.last_watered || "(never)") + '</p>' +
+        '<p>Next due: ' + (nextDueISO(plant) || "(no schedule)") + ' (<span class="' + status.cls + '">' + status.label + '</span>)</p>' +
         '<h4>Recent activity</h4>' +
         '<ul>' + (historyHTML || '<li>No activity yet.</li>') + '</ul>';
       const dialog = document.getElementById("plant-detail");
@@ -427,12 +488,18 @@
       if (photoSpan) photoSpan.innerHTML = "";
     }
 
+    // --- Batch: just apply (no toggle) ---
     function applyBatch(status) {
       if (selectedPlantIds.size === 0) return;
+      const dateToUse = selectedDate || todayISO();
       const plants = loadPlants();
-      const today = todayISO();
       for (const plant of plants) {
-        if (selectedPlantIds.has(plant.id)) applyWaterStatusToPlant(plant, status, today);
+        if (selectedPlantIds.has(plant.id)) {
+          plant.history = plant.history || [];
+          plant.history = plant.history.filter(function (h) { return h.date !== dateToUse; });
+          plant.history.unshift({ date: dateToUse, status: status });
+          recomputePlantState(plant);
+        }
       }
       savePlants(plants);
       selectedPlantIds.clear();
@@ -443,13 +510,11 @@
       renderAll();
     }
 
-    // ---- Defensive event listener helper ----
     function bind(id, event, handler) {
       const el = document.getElementById(id);
       if (el) el.addEventListener(event, handler);
     }
 
-    // ---- Static element listeners ----
     bind("reset-date", "click", function () {
       selectedDate = todayISO();
       const di = document.getElementById("watering-date");
@@ -468,12 +533,10 @@
     document.querySelectorAll("#selection-bar [data-batch-status]").forEach(function (btn) {
       btn.addEventListener("click", function () { applyBatch(btn.dataset.batchStatus); });
     });
-
     document.querySelectorAll(".clear-radios-btn").forEach(function (btn) {
       btn.addEventListener("click", function () { clearRadioGroup(btn.dataset.clearGroup); });
     });
 
-    // ---- Event delegation for dynamic content ----
     document.body.addEventListener("click", function (e) {
       const target = e.target;
       if (target.dataset && target.dataset.areaAction) {
@@ -497,7 +560,6 @@
       if (target.dataset && target.dataset.action === "water") waterPlant(plantId, target.dataset.status);
     });
 
-    // ---- Form submit ----
     const addForm = document.getElementById("add-form");
     if (addForm) {
       addForm.addEventListener("submit", async function (e) {
@@ -514,7 +576,15 @@
           plant.area = formData.get("area");
           plant.watering_type = formData.get("watering_type");
           plant.interval_days = Number(formData.get("interval_days"));
-          plant.last_watered = formData.get("last_watered");
+          const newLastWatered = formData.get("last_watered");
+          // If the user changed the "Last watered" field in edit mode, add a watered
+          // entry for that date if there isn't already one. Don't wipe history.
+          if (newLastWatered && (!plant.history || !plant.history.some(function (h) { return h.date === newLastWatered && h.status === "watered"; }))) {
+            plant.history = plant.history || [];
+            plant.history = plant.history.filter(function (h) { return h.date !== newLastWatered; });
+            plant.history.push({ date: newLastWatered, status: "watered" });
+          }
+          recomputePlantState(plant);
           if (photoFile && photoFile.size > 0) {
             try { plant.photo = await resizeImage(photoFile); }
             catch (err) { alert("Could not process photo: " + err.message); return; }
@@ -526,6 +596,7 @@
           let photo = null;
           try { photo = await resizeImage(photoFile); }
           catch (err) { alert("Could not process photo: " + err.message); return; }
+          const lastWateredVal = formData.get("last_watered");
           const plant = {
             id: "plant-" + Date.now(),
             name: formData.get("name"),
@@ -533,11 +604,13 @@
             area: formData.get("area"),
             watering_type: formData.get("watering_type"),
             interval_days: Number(formData.get("interval_days")),
-            last_watered: formData.get("last_watered"),
+            last_watered: lastWateredVal,
             photo: photo,
             next_check_override: null,
-            history: [],
+            // Seed history with the initial watered entry from the form
+            history: lastWateredVal ? [{ date: lastWateredVal, status: "watered" }] : [],
           };
+          recomputePlantState(plant);
           const plants = loadPlants();
           plants.push(plant);
           savePlants(plants);
@@ -547,7 +620,6 @@
       });
     }
 
-    // ---- Export / Import ----
     bind("export-btn", "click", function () {
       const data = { plants: loadPlants() };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -573,7 +645,6 @@
       reader.readAsText(file);
     });
 
-    // ---- Initial render ----
     try {
       selectedDate = todayISO();
       const dateInput = document.getElementById("watering-date");
