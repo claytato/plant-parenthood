@@ -67,8 +67,8 @@
     #selection-bar button { font-size: 14px; padding: 6px 12px; }
     #selection-bar .count { font-weight: bold; }
 
-    #suggest-status { color: #666; font-size: 13px; margin-left: 8px; }
-    #suggest-status.error { color: #c00; }
+    #suggest-status, #sitter-status { color: #666; font-size: 13px; }
+    #suggest-status.error, #sitter-status.error { color: #c00; }
     textarea[name="notes"] { width: 100%; max-width: 400px; box-sizing: border-box; font-family: inherit; font-size: 14px; padding: 6px; }
   </style>
 </head>
@@ -81,6 +81,17 @@
     <button type="button" id="reset-date">Today</button>
   </p>
   <div id="today-list"></div>
+
+  <h2>Sitter guide</h2>
+  <p>For when someone else is watering while you're away. Claude writes a friendly paragraph per plant.</p>
+  <p>
+    <label>Trip start <input type="date" id="trip-start" /></label>
+    <label> Trip end <input type="date" id="trip-end" /></label>
+  </p>
+  <p>
+    <button type="button" id="generate-sitter-btn">Generate sitter guide</button>
+    <span id="sitter-status"></span>
+  </p>
 
   <h2>All plants</h2>
   <div id="all-plants"></div>
@@ -573,6 +584,173 @@
     }
     bind("suggest-care-btn", "click", suggestCare);
 
+    // --- Sitter guide (Tier 3, Claude-powered) ---
+    function buildSitterGuideHTML(plants, paragraphsById, tripStart, tripEnd) {
+      function esc(str) {
+        if (str == null) return "";
+        return String(str)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+
+      const byArea = {};
+      for (const plant of plants) {
+        const area = plant.area || "(no area)";
+        if (!byArea[area]) byArea[area] = [];
+        byArea[area].push(plant);
+      }
+
+      let plantsHTML = "";
+      for (const area of Object.keys(byArea)) {
+        plantsHTML += '<h2>' + esc(area) + '</h2>';
+        for (const plant of byArea[area]) {
+          const paragraph = paragraphsById[plant.id] || "(no guidance available)";
+          const photoHTML = plant.photo
+            ? '<img src="' + plant.photo + '" alt="" />'
+            : '<div class="no-photo"></div>';
+          const nextDue = nextDueISO(plant) || "(no schedule)";
+          const schedule = (plant.watering_type ? esc(plant.watering_type) + " &middot; " : "") +
+            "every " + plant.interval_days + " days &middot; next due " + esc(nextDue);
+          plantsHTML +=
+            '<div class="plant">' +
+              photoHTML +
+              '<div class="plant-info">' +
+                '<h3>' + esc(plant.name) +
+                  (plant.species ? ' <span class="species">(' + esc(plant.species) + ')</span>' : '') +
+                '</h3>' +
+                '<p class="schedule">' + schedule + '</p>' +
+                '<p class="paragraph">' + esc(paragraph) + '</p>' +
+              '</div>' +
+            '</div>';
+        }
+      }
+
+      return '<!DOCTYPE html>\n' +
+        '<html lang="en">\n' +
+        '<head>\n' +
+        '<meta charset="UTF-8">\n' +
+        '<title>Plant care while I\'m away (' + esc(tripStart) + ' to ' + esc(tripEnd) + ')</title>\n' +
+        '<style>\n' +
+        '  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 32px auto; padding: 0 16px; color: #222; line-height: 1.5; }\n' +
+        '  h1 { font-size: 28px; margin-bottom: 4px; }\n' +
+        '  h2 { font-size: 20px; margin-top: 28px; padding-bottom: 4px; border-bottom: 2px solid #333; }\n' +
+        '  h3 { margin: 0 0 4px; font-size: 18px; }\n' +
+        '  .trip-dates { color: #666; margin: 0 0 16px; }\n' +
+        '  .intro { background: #f5f5f5; padding: 16px 20px; border-radius: 8px; margin: 16px 0 24px; }\n' +
+        '  .intro ul { margin: 8px 0 0; padding-left: 24px; }\n' +
+        '  .plant { display: flex; gap: 16px; margin: 16px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; page-break-inside: avoid; }\n' +
+        '  .plant img, .no-photo { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: #eee; }\n' +
+        '  .plant-info { flex: 1; }\n' +
+        '  .species { font-size: 14px; color: #666; font-weight: normal; }\n' +
+        '  .schedule { font-size: 13px; color: #666; margin: 4px 0 8px; }\n' +
+        '  .paragraph { margin: 8px 0; }\n' +
+        '  .print-btn { padding: 8px 16px; cursor: pointer; font-size: 14px; }\n' +
+        '  @media print { body { max-width: 100%; margin: 16px; } .print-btn { display: none; } }\n' +
+        '</style>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '<h1>Plant care while I\'m away</h1>\n' +
+        '<p class="trip-dates">' + esc(tripStart) + ' to ' + esc(tripEnd) + '</p>\n' +
+        '<button class="print-btn" onclick="window.print()">Print or save as PDF</button>\n' +
+        '<div class="intro">\n' +
+        '<p><strong>Thanks so much for watching my plants!</strong> Each plant below has its own note explaining what it needs during this trip.</p>\n' +
+        '<ul>\n' +
+        '<li>Only water plants that need it. If the soil feels damp 1 inch down, skip that day &mdash; overwatering kills more plants than underwatering.</li>\n' +
+        '<li>Check the soil with your finger before watering.</li>\n' +
+        '<li>If anything looks really wrong, text me!</li>\n' +
+        '</ul>\n' +
+        '</div>\n' +
+        plantsHTML + '\n' +
+        '</body>\n' +
+        '</html>';
+    }
+
+    async function generateSitter() {
+      const plants = loadPlants();
+      const status = document.getElementById("sitter-status");
+      const btn = document.getElementById("generate-sitter-btn");
+
+      if (plants.length === 0) {
+        status.classList.add("error");
+        status.textContent = "Add some plants first.";
+        return;
+      }
+
+      const tripStart = document.getElementById("trip-start").value;
+      const tripEnd = document.getElementById("trip-end").value;
+      if (!tripStart || !tripEnd) {
+        status.classList.add("error");
+        status.textContent = "Set both trip start and trip end dates.";
+        return;
+      }
+      if (tripEnd < tripStart) {
+        status.classList.add("error");
+        status.textContent = "Trip end must be on or after trip start.";
+        return;
+      }
+
+      const originalText = btn.textContent;
+      btn.textContent = "Generating for " + plants.length + " plants...";
+      btn.disabled = true;
+      status.classList.remove("error");
+      status.textContent = "Asking Claude to write care notes (this can take 10-20 seconds)...";
+
+      // Build the payload Claude will see: metadata only, no photos.
+      const plantPayload = plants.map(function (p) {
+        return {
+          id: p.id,
+          name: p.name,
+          species: p.species || "",
+          area: p.area || "",
+          watering_type: p.watering_type || "",
+          interval_days: p.interval_days,
+          last_watered: p.last_watered || "",
+          next_due: nextDueISO(p) || "",
+          notes: p.notes || "",
+        };
+      });
+
+      try {
+        const response = await fetch("/api/sitter-guide", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plants: plantPayload,
+            trip_start: tripStart,
+            trip_end: tripEnd,
+            today: todayISO(),
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Request failed");
+
+        const paragraphs = data.paragraphs || [];
+        const paragraphsById = {};
+        for (const item of paragraphs) {
+          if (item && item.id) paragraphsById[item.id] = item.paragraph || "";
+        }
+
+        const html = buildSitterGuideHTML(plants, paragraphsById, tripStart, tripEnd);
+        const blob = new Blob([html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, "_blank");
+        if (!win) {
+          status.classList.add("error");
+          status.textContent = "Popup blocked. Allow popups for this site, then try again.";
+        } else {
+          status.textContent = "Opened guide in a new tab.";
+          setTimeout(function () { status.textContent = ""; }, 4000);
+        }
+      } catch (err) {
+        status.classList.add("error");
+        status.textContent = "Could not generate guide: " + err.message;
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+    bind("generate-sitter-btn", "click", generateSitter);
+
     bind("reset-date", "click", function () {
       selectedDate = todayISO();
       const di = document.getElementById("watering-date");
@@ -706,6 +884,11 @@
       selectedDate = todayISO();
       const dateInput = document.getElementById("watering-date");
       if (dateInput) dateInput.value = selectedDate;
+      const today = todayISO();
+      const tripStartInput = document.getElementById("trip-start");
+      const tripEndInput = document.getElementById("trip-end");
+      if (tripStartInput) tripStartInput.value = today;
+      if (tripEndInput) tripEndInput.value = addDays(today, 7);
       renderAll();
     } catch (err) {
       console.error("init failed:", err);
