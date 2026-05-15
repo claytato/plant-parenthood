@@ -54,7 +54,6 @@
     .detail-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
     .detail-actions form { margin-left: auto; margin-bottom: 0; }
 
-    /* Selection bar: always rendered, slides up via transform when active. */
     #selection-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: #333; color: #fff; padding: 10px 16px;
@@ -67,6 +66,10 @@
     #selection-bar.visible { transform: translateY(0); }
     #selection-bar button { font-size: 14px; padding: 6px 12px; }
     #selection-bar .count { font-weight: bold; }
+
+    #suggest-status { color: #666; font-size: 13px; margin-left: 8px; }
+    #suggest-status.error { color: #c00; }
+    textarea[name="notes"] { width: 100%; max-width: 400px; box-sizing: border-box; font-family: inherit; font-size: 14px; padding: 6px; }
   </style>
 </head>
 <body>
@@ -89,7 +92,11 @@
   </div>
   <form id="add-form">
     <p><label>Name <input name="name" required /></label></p>
-    <p><label>Species <input name="species" /></label></p>
+    <p>
+      <label>Species <input name="species" id="species-input" /></label>
+      <button type="button" id="suggest-care-btn">Suggest care info</button>
+      <span id="suggest-status" style="display:none;"></span>
+    </p>
     <p>
       Area
       <button type="button" class="clear-radios-btn" data-clear-group="area">Clear</button>
@@ -128,6 +135,11 @@
     </p>
     <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" required /></label></p>
     <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
+    <p>
+      <label>Notes<br />
+        <textarea name="notes" rows="3" placeholder="Light needs, soil, common issues..."></textarea>
+      </label>
+    </p>
     <p id="current-photo-row" style="display:none;">
       Current photo: <span id="current-photo"></span>
     </p>
@@ -178,8 +190,6 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
         const plants = JSON.parse(raw);
-        // Migration: ensure each plant has history, and seed initial watered entry
-        // from last_watered if no watered entries exist yet.
         for (const plant of plants) {
           if (!plant.history) plant.history = [];
           const hasWatered = plant.history.some(function (h) { return h.status === "watered"; });
@@ -244,8 +254,6 @@
       return { label: "Due in " + diff + " day" + (diff === 1 ? "" : "s"), cls: "", needsWater: false };
     }
 
-    // --- History-derived state ---
-    // History is the source of truth. last_watered and next_check_override are derived.
     function getActionForDate(plant, date) {
       if (!plant.history) return null;
       const entry = plant.history.find(function (h) { return h.date === date; });
@@ -257,7 +265,6 @@
         plant.next_check_override = null;
         return;
       }
-      // Sort newest first
       plant.history.sort(function (a, b) { return b.date.localeCompare(a.date); });
       const lastWateredEntry = plant.history.find(function (h) { return h.status === "watered"; });
       plant.last_watered = lastWateredEntry ? lastWateredEntry.date : null;
@@ -383,7 +390,6 @@
       }
     }
 
-    // --- Watering action: toggle behavior on per-row buttons ---
     function waterPlant(plantId, status) {
       const dateToUse = selectedDate || todayISO();
       const plants = loadPlants();
@@ -391,10 +397,7 @@
       if (!plant) return;
       plant.history = plant.history || [];
       const existingAction = getActionForDate(plant, dateToUse);
-      // Remove any existing entry for this date
       plant.history = plant.history.filter(function (h) { return h.date !== dateToUse; });
-      // If the existing action matches the clicked status, we're toggling off (revert).
-      // Otherwise, add the new entry (apply / replace).
       if (existingAction !== status) {
         plant.history.unshift({ date: dateToUse, status: status });
       }
@@ -423,6 +426,9 @@
       const historyHTML = (plant.history || []).slice(0, 10).map(function (h) {
         return '<li>' + h.date + ' &mdash; ' + escapeHtml(h.status.replace("_", " ")) + '</li>';
       }).join("");
+      const notesHTML = plant.notes
+        ? '<p><strong>Notes:</strong><br />' + escapeHtml(plant.notes).replace(/\n/g, "<br />") + '</p>'
+        : '';
       const content = document.getElementById("plant-detail-content");
       if (!content) return;
       content.innerHTML =
@@ -434,6 +440,7 @@
         '<p>Interval: every ' + plant.interval_days + ' days</p>' +
         '<p>Last watered: ' + escapeHtml(plant.last_watered || "(never)") + '</p>' +
         '<p>Next due: ' + (nextDueISO(plant) || "(no schedule)") + ' (<span class="' + status.cls + '">' + status.label + '</span>)</p>' +
+        notesHTML +
         '<h4>Recent activity</h4>' +
         '<ul>' + (historyHTML || '<li>No activity yet.</li>') + '</ul>';
       const dialog = document.getElementById("plant-detail");
@@ -450,6 +457,7 @@
       form.elements.species.value = plant.species || "";
       form.elements.interval_days.value = plant.interval_days || "";
       form.elements.last_watered.value = plant.last_watered || "";
+      if (form.elements.notes) form.elements.notes.value = plant.notes || "";
       setAreaRadio(plant.area);
       document.querySelectorAll('input[name="watering_type"]').forEach(function (r) {
         r.checked = (r.value === plant.watering_type);
@@ -488,7 +496,6 @@
       if (photoSpan) photoSpan.innerHTML = "";
     }
 
-    // --- Batch: just apply (no toggle) ---
     function applyBatch(status) {
       if (selectedPlantIds.size === 0) return;
       const dateToUse = selectedDate || todayISO();
@@ -514,6 +521,57 @@
       const el = document.getElementById(id);
       if (el) el.addEventListener(event, handler);
     }
+
+    // --- Suggest care info (Tier 3, Claude-powered) ---
+    async function suggestCare() {
+      const speciesInput = document.getElementById("species-input");
+      const species = (speciesInput.value || "").trim();
+      const status = document.getElementById("suggest-status");
+      const btn = document.getElementById("suggest-care-btn");
+
+      if (!species) {
+        status.classList.add("error");
+        status.style.display = "inline";
+        status.textContent = "Type a species name first.";
+        return;
+      }
+
+      const originalText = btn.textContent;
+      btn.textContent = "Asking Claude...";
+      btn.disabled = true;
+      status.classList.remove("error");
+      status.style.display = "inline";
+      status.textContent = "Looking up " + species + "...";
+
+      try {
+        const response = await fetch("/api/suggest-care", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ species: species }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Request failed");
+
+        if (data.interval_days) {
+          const intervalInput = document.querySelector('input[name="interval_days"]');
+          if (intervalInput) intervalInput.value = data.interval_days;
+        }
+        if (data.notes && Array.isArray(data.notes)) {
+          const notesField = document.querySelector('textarea[name="notes"]');
+          if (notesField) notesField.value = data.notes.join("\n");
+        }
+
+        status.textContent = "Suggested. Edit anything that looks off.";
+        setTimeout(function () { status.style.display = "none"; }, 4000);
+      } catch (err) {
+        status.classList.add("error");
+        status.textContent = "Could not get suggestion: " + err.message;
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+    bind("suggest-care-btn", "click", suggestCare);
 
     bind("reset-date", "click", function () {
       selectedDate = todayISO();
@@ -576,9 +634,8 @@
           plant.area = formData.get("area");
           plant.watering_type = formData.get("watering_type");
           plant.interval_days = Number(formData.get("interval_days"));
+          plant.notes = formData.get("notes") || "";
           const newLastWatered = formData.get("last_watered");
-          // If the user changed the "Last watered" field in edit mode, add a watered
-          // entry for that date if there isn't already one. Don't wipe history.
           if (newLastWatered && (!plant.history || !plant.history.some(function (h) { return h.date === newLastWatered && h.status === "watered"; }))) {
             plant.history = plant.history || [];
             plant.history = plant.history.filter(function (h) { return h.date !== newLastWatered; });
@@ -605,9 +662,9 @@
             watering_type: formData.get("watering_type"),
             interval_days: Number(formData.get("interval_days")),
             last_watered: lastWateredVal,
+            notes: formData.get("notes") || "",
             photo: photo,
             next_check_override: null,
-            // Seed history with the initial watered entry from the form
             history: lastWateredVal ? [{ date: lastWateredVal, status: "watered" }] : [],
           };
           recomputePlantState(plant);
