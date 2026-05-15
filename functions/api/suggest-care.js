@@ -30,7 +30,7 @@ export const onRequestPost = async (context) => {
   const prompt =
     "You are a houseplant care assistant. For the plant species below, return ONLY a JSON object with two keys:\n" +
     "- \"interval_days\": typical watering interval in days, an integer between 1 and 30\n" +
-    "- \"notes\": an array of 2 to 3 short care notes (each under 80 characters), focused on light, humidity, soil, or common issues\n" +
+    "- \"notes\": an array of 2 to 3 short care notes, each a complete sentence ending with a period and under 80 characters, focused on watering technique, soil, light, humidity, or common issues\n" +
     "\n" +
     "Do not include markdown, code fences, or any text outside the JSON object.\n" +
     "\n" +

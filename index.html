@@ -558,7 +558,7 @@
         }
         if (data.notes && Array.isArray(data.notes)) {
           const notesField = document.querySelector('textarea[name="notes"]');
-          if (notesField) notesField.value = data.notes.join("\n");
+          if (notesField) notesField.value = data.notes.map(function (n) { return "• " + n; }).join("\n");
         }
 
         status.textContent = "Suggested. Edit anything that looks off.";
