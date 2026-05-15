@@ -1,6 +1,6 @@
 // Cloudflare Pages Function: POST /api/sitter-guide
-// Body: { plants: [...], trip_start: "2026-05-20", trip_end: "2026-05-27", today: "2026-05-13" }
-// Returns: { paragraphs: [{ id: "plant-...", paragraph: "..." }, ...] }
+// Body: { plants: [...], visit_date: "2026-05-20", today: "2026-05-13" }
+// Returns: { briefs: [{ id: "plant-...", brief: "..." }, ...] }
 
 function jsonResponse(data, status) {
   return new Response(JSON.stringify(data), {
@@ -23,8 +23,7 @@ export const onRequestPost = async (context) => {
   }
 
   const plants = body.plants;
-  const tripStart = body.trip_start || "(not set)";
-  const tripEnd = body.trip_end || "(not set)";
+  const visitDate = body.visit_date || "(not set)";
   const today = body.today || "(not set)";
 
   if (!Array.isArray(plants) || plants.length === 0) {
@@ -46,23 +45,23 @@ export const onRequestPost = async (context) => {
   }).join("\n\n");
 
   const prompt =
-    "You are writing a houseplant-watering guide for a friend who will be plant-sitting while the owner is away. For each plant below, write ONE warm, plain-English paragraph (3-5 sentences) telling the friend exactly what to do during the trip dates.\n" +
+    "You're writing brief plant-care notes for a friend who's visiting once. For each plant below, return ONE short instruction (max 120 characters) telling them how to water THIS plant on the visit date.\n" +
     "\n" +
-    "Tone: friendly, like a text to a friend. Casual but clear. Use the plant's name conversationally; don't say \"the plant.\"\n" +
+    "Style:\n" +
+    "- Action-first; fragments are fine. Examples:\n" +
+    "    \"Even coat - don't drench. Yellow leaves = overwatering.\"\n" +
+    "    \"Soak 15-20 min in tray, drain well.\"\n" +
+    "    \"Light mist on leaves.\"\n" +
+    "    \"Swap vase water, rinse roots.\"\n" +
+    "- Match watering_type to the verb (top water = even coat, bottom soak = tray soak, mist = mist leaves, change water = swap vase)\n" +
+    "- Add ONE quick warning only if it's actually critical (e.g. \"yellow leaves = overwatering\")\n" +
+    "- No greetings, no fluff, no full sentences when a fragment is clearer\n" +
     "\n" +
-    "For each plant, cover:\n" +
-    "- Whether and when it needs watering during the trip (use interval_days, last_watered, and next_due to figure out which dates fall inside the trip window)\n" +
-    "- The kind of watering it likes (use watering_type)\n" +
-    "- One thing to watch for (overwatering, dry soil, drooping leaves, etc.)\n" +
-    "- Any quirks worth noting from the user's notes\n" +
-    "\n" +
-    "Do NOT include a greeting, sign-off, or general advice across plants. Just the per-plant paragraphs. The user's app will add a greeting and general intro separately.\n" +
-    "\n" +
-    "Return ONLY a JSON array. Each item must have the shape: {\"id\": \"plant-1234567890\", \"paragraph\": \"...\"}\n" +
+    "Return ONLY a JSON array: [{\"id\": \"plant-...\", \"brief\": \"...\"}]\n" +
     "Do not include markdown, code fences, or any text outside the JSON array.\n" +
     "\n" +
-    "Today's date: " + today + "\n" +
-    "Trip dates: " + tripStart + " to " + tripEnd + "\n" +
+    "Visit date: " + visitDate + "\n" +
+    "Today: " + today + "\n" +
     "\n" +
     "Plants:\n" + plantList;
 
@@ -75,8 +74,8 @@ export const onRequestPost = async (context) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 4000,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -108,7 +107,7 @@ export const onRequestPost = async (context) => {
       return jsonResponse({ error: "Claude returned non-array", raw: text }, 502);
     }
 
-    return jsonResponse({ paragraphs: parsed });
+    return jsonResponse({ briefs: parsed });
   } catch (err) {
     return jsonResponse({ error: err.message }, 500);
   }
