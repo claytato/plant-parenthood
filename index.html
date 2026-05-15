@@ -4,24 +4,125 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Plant Parenthood</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 16px auto; padding: 0 12px 80px; color: #222; }
+    h1, h2, h3, h4 { margin: 16px 0 8px; }
+
+    .radio-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+    .radio-buttons input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+    .radio-buttons label {
+      display: inline-block; padding: 6px 12px;
+      border: 1px solid #999; border-radius: 4px;
+      cursor: pointer; user-select: none; background: #fff; font-size: 14px;
+    }
+    .radio-buttons input[type="radio"]:checked + label {
+      background: #333; color: #fff; border-color: #333;
+    }
+    .radio-buttons input[type="radio"]:focus + label {
+      outline: 2px solid #4a90e2; outline-offset: 1px;
+    }
+    .clear-radios-btn { font-size: 11px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+
+    .plant-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px; border: 1px solid #ddd; margin: 6px 0; border-radius: 4px;
+    }
+    .plant-thumb {
+      width: 50px; height: 50px; object-fit: cover;
+      border-radius: 4px; background: #eee; flex-shrink: 0; display: inline-block;
+    }
+    .plant-info { flex: 1; min-width: 0; }
+    .plant-name { cursor: pointer; text-decoration: underline dotted; }
+    .plant-actions button { margin-left: 4px; font-size: 12px; }
+    .plant-checkbox { margin-right: 6px; transform: scale(1.2); cursor: pointer; }
+    .area-actions { font-size: 12px; font-weight: normal; margin-left: 8px; }
+    .area-actions button { font-size: 11px; padding: 2px 6px; margin-left: 2px; }
+    .overdue { color: #c00; font-weight: bold; }
+    .due-today { color: #b85; font-weight: bold; }
+
+    .edit-banner { background: #fffbe5; border: 1px solid #d4b800; padding: 8px 12px; border-radius: 4px; margin: 8px 0; }
+    .edit-banner button { margin-left: 8px; }
+
+    dialog { max-width: 480px; border: 1px solid #999; border-radius: 8px; padding: 16px; }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
+    .detail-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .detail-actions form { margin-left: auto; margin-bottom: 0; }
+
+    #selection-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #333; color: #fff; padding: 10px 16px;
+      display: none; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap;
+    }
+    #selection-bar button { font-size: 14px; padding: 6px 12px; }
+    #selection-bar .count { font-weight: bold; }
+  </style>
 </head>
 <body>
   <h1>Plant Parenthood</h1>
 
-  <h2>Add a plant</h2>
+  <h2>Watering schedule</h2>
+  <p>
+    Show plants due by <input type="date" id="watering-date" />
+    <button type="button" id="reset-date">Today</button>
+  </p>
+  <div id="today-list"></div>
+
+  <h2>All plants</h2>
+  <div id="all-plants"></div>
+
+  <h2 id="form-heading">Add a plant</h2>
+  <div id="edit-banner" class="edit-banner" style="display:none;">
+    Editing an existing plant.
+    <button type="button" id="cancel-edit">Cancel edit</button>
+  </div>
   <form id="add-form">
     <p><label>Name <input name="name" required /></label></p>
     <p><label>Species <input name="species" /></label></p>
-    <p><label>Area <input name="area" required /></label></p>
-    <p><label>Watering type <input name="watering_type" required /></label></p>
+    <p>
+      Area
+      <button type="button" class="clear-radios-btn" data-clear-group="area">Clear</button>
+      <br />
+      <span class="radio-buttons">
+        <input type="radio" id="area-1" name="area" value="Plant Table" required />
+        <label for="area-1">Plant Table</label>
+        <input type="radio" id="area-2" name="area" value="Kitchen Island" />
+        <label for="area-2">Kitchen Island</label>
+        <input type="radio" id="area-3" name="area" value="Bookshelf" />
+        <label for="area-3">Bookshelf</label>
+        <input type="radio" id="area-4" name="area" value="Under TV" />
+        <label for="area-4">Under TV</label>
+        <input type="radio" id="area-5" name="area" value="Desk" />
+        <label for="area-5">Desk</label>
+        <input type="radio" id="area-6" name="area" value="Bathroom" />
+        <label for="area-6">Bathroom</label>
+        <input type="radio" id="area-7" name="area" value="Bedroom" />
+        <label for="area-7">Bedroom</label>
+      </span>
+    </p>
+    <p>
+      Watering type
+      <button type="button" class="clear-radios-btn" data-clear-group="watering_type">Clear</button>
+      <br />
+      <span class="radio-buttons">
+        <input type="radio" id="wt-top" name="watering_type" value="Top water" />
+        <label for="wt-top">Top water</label>
+        <input type="radio" id="wt-soak" name="watering_type" value="Bottom soak" />
+        <label for="wt-soak">Bottom soak</label>
+        <input type="radio" id="wt-mist" name="watering_type" value="Mist" />
+        <label for="wt-mist">Mist</label>
+        <input type="radio" id="wt-change" name="watering_type" value="Change water" />
+        <label for="wt-change">Change water</label>
+      </span>
+    </p>
     <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" required /></label></p>
     <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
-    
-    <button type="submit">Add plant</button>
+    <p id="current-photo-row" style="display:none;">
+      Current photo: <span id="current-photo"></span>
+    </p>
+    <p><label>Photo <input name="photo" type="file" accept="image/*" /></label></p>
+    <button type="submit" id="submit-btn">Add plant</button>
   </form>
-
-  <h2>Your plants</h2>
-  <ul id="plant-list"></ul>
 
   <h2>Backup</h2>
   <p>
@@ -29,88 +130,458 @@
     <label> Import JSON: <input type="file" id="import-input" accept="application/json" /></label>
   </p>
 
+  <dialog id="plant-detail">
+    <div id="plant-detail-content"></div>
+    <div class="detail-actions">
+      <button type="button" id="edit-btn">Edit plant</button>
+      <button type="button" id="delete-btn">Delete plant</button>
+      <form method="dialog">
+        <button>Close</button>
+      </form>
+    </div>
+  </dialog>
+
+  <div id="selection-bar">
+    <span class="count" id="selection-count">0 selected</span>
+    <button type="button" data-batch-status="watered">Mark watered</button>
+    <button type="button" data-batch-status="skipped_damp">Skip (damp)</button>
+    <button type="button" id="clear-selection">Clear</button>
+  </div>
+
   <script>
     const STORAGE_KEY = "plants";
 
+    let editingPlantId = null;
+    let selectedDate = null;
+    let lastDetailPlantId = null;
+    const selectedPlantIds = new Set();
+
+    function escapeHtml(str) {
+      if (str == null) return "";
+      return String(str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
     function loadPlants() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
     }
-
     function savePlants(plants) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(plants)); }
+      catch (e) { alert("Could not save: " + e.message); }
+    }
+    function setAreaRadio(area) {
+      document.querySelectorAll('input[name="area"]').forEach(function (r) {
+        r.checked = (r.value === area);
+      });
+    }
+    function clearRadioGroup(groupName) {
+      document.querySelectorAll('input[name="' + groupName + '"]').forEach(function (r) {
+        r.checked = false;
+      });
     }
 
-    function renderList() {
-      const plants = loadPlants();
-      const ul = document.getElementById("plant-list");
-      ul.innerHTML = "";
+    function todayISO() {
+      const d = new Date();
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+    function addDays(isoDate, days) {
+      if (!isoDate) return null;
+      const d = new Date(isoDate + "T00:00:00");
+      d.setDate(d.getDate() + days);
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+    function daysBetween(fromISO, toISO) {
+      const a = new Date(fromISO + "T00:00:00");
+      const b = new Date(toISO + "T00:00:00");
+      return Math.round((b - a) / (1000 * 60 * 60 * 24));
+    }
+    function nextDueISO(plant) {
+      if (plant.next_check_override) return plant.next_check_override;
+      return addDays(plant.last_watered, plant.interval_days || 7);
+    }
+    function dueStatus(plant, asOfDate) {
+      asOfDate = asOfDate || todayISO();
+      const next = nextDueISO(plant);
+      if (!next) return { label: "No schedule", cls: "", needsWater: false };
+      const diff = daysBetween(asOfDate, next);
+      if (diff < 0) {
+        const n = Math.abs(diff);
+        return { label: n + " day" + (n === 1 ? "" : "s") + " overdue", cls: "overdue", needsWater: true };
+      }
+      if (diff === 0) {
+        const isToday = asOfDate === todayISO();
+        return { label: isToday ? "Due today" : "Due " + asOfDate, cls: "due-today", needsWater: true };
+      }
+      return { label: "Due in " + diff + " day" + (diff === 1 ? "" : "s"), cls: "", needsWater: false };
+    }
+
+    function resizeImage(file, maxDim) {
+      maxDim = maxDim || 200;
+      return new Promise(function (resolve, reject) {
+        if (!file || file.size === 0) { resolve(null); return; }
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+            canvas.width = Math.round(img.width * ratio);
+            canvas.height = Math.round(img.height * ratio);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function plantRowHTML(plant) {
+      const status = dueStatus(plant, selectedDate);
+      const isSelected = selectedPlantIds.has(plant.id);
+      const photoHTML = plant.photo
+        ? '<img class="plant-thumb" src="' + plant.photo + '" alt="" />'
+        : '<span class="plant-thumb"></span>';
+      return (
+        '<div class="plant-row" data-plant-id="' + escapeHtml(plant.id) + '">' +
+          '<input type="checkbox" class="plant-checkbox" data-action="toggle-select"' + (isSelected ? ' checked' : '') + ' />' +
+          photoHTML +
+          '<div class="plant-info">' +
+            '<strong class="plant-name">' + escapeHtml(plant.name) + '</strong>' +
+            (plant.species ? ' <span style="color:#666;">(' + escapeHtml(plant.species) + ')</span>' : '') +
+            '<br />' +
+            '<span class="' + status.cls + '">' + status.label + '</span>' +
+            ' &middot; ' + escapeHtml(plant.area || "") +
+          '</div>' +
+          '<div class="plant-actions">' +
+            '<button type="button" data-action="water" data-status="watered">Watered</button>' +
+            '<button type="button" data-action="water" data-status="skipped_damp">Skip (damp)</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    function renderGroupedByArea(plants, container, emptyMessage) {
+      if (!container) return;
       if (plants.length === 0) {
-        ul.innerHTML = "<li>No plants yet. Add one above.</li>";
+        container.innerHTML = '<p style="color:#888;">' + emptyMessage + '</p>';
         return;
       }
+      const byArea = {};
       for (const plant of plants) {
-        const li = document.createElement("li");
-        li.textContent =
-          plant.name +
-          (plant.species ? " (" + plant.species + ")" : "") +
-          " — " + plant.area +
-          " — " + plant.watering_type +
-          ", every " + plant.interval_days + " days" +
-          ", last watered " + plant.last_watered;
-        ul.appendChild(li);
+        const key = plant.area || "(no area)";
+        if (!byArea[key]) byArea[key] = [];
+        byArea[key].push(plant);
+      }
+      container.innerHTML = Object.keys(byArea).map(function (area) {
+        const areaSafe = escapeHtml(area);
+        const headerActions =
+          ' <span class="area-actions">' +
+            '<button type="button" data-area-action="select" data-area="' + areaSafe + '">Select all</button>' +
+            '<button type="button" data-area-action="deselect" data-area="' + areaSafe + '">Deselect</button>' +
+          '</span>';
+        return '<h3>' + areaSafe + headerActions + '</h3>' +
+          byArea[area].map(plantRowHTML).join("");
+      }).join("");
+    }
+
+    function renderToday() {
+      const dateToUse = selectedDate || todayISO();
+      const needs = loadPlants().filter(function (p) { return dueStatus(p, dateToUse).needsWater; });
+      renderGroupedByArea(needs, document.getElementById("today-list"), "Nothing needs watering by this date.");
+    }
+    function renderAllPlants() {
+      renderGroupedByArea(loadPlants(), document.getElementById("all-plants"), "No plants yet. Add one below.");
+    }
+    function updateSelectionBar() {
+      const bar = document.getElementById("selection-bar");
+      if (!bar) return;
+      const count = selectedPlantIds.size;
+      if (count === 0) {
+        bar.style.display = "none";
+      } else {
+        bar.style.display = "flex";
+        const c = document.getElementById("selection-count");
+        if (c) c.textContent = count + " selected";
+      }
+    }
+    function renderAll() {
+      try {
+        renderToday();
+        renderAllPlants();
+        updateSelectionBar();
+      } catch (err) {
+        console.error("renderAll failed:", err);
       }
     }
 
-    document.getElementById("add-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const plant = {
-        id: "plant-" + Date.now(),
-        name: formData.get("name"),
-        species: formData.get("species"),
-        area: formData.get("area"),
-        watering_type: formData.get("watering_type"),
-        interval_days: Number(formData.get("interval_days")),
-        last_watered: formData.get("last_watered"),
-      };
+    function applyWaterStatusToPlant(plant, status, today) {
+      plant.history = plant.history || [];
+      plant.history.unshift({ date: today, status: status });
+      if (status === "watered") {
+        plant.last_watered = today;
+        plant.next_check_override = null;
+      } else if (status === "skipped_damp") {
+        plant.next_check_override = addDays(today, 1);
+      }
+    }
+    function waterPlant(plantId, status) {
       const plants = loadPlants();
-      plants.push(plant);
+      const plant = plants.find(function (p) { return p.id === plantId; });
+      if (!plant) return;
+      applyWaterStatusToPlant(plant, status, todayISO());
       savePlants(plants);
-      e.target.reset();
-      renderList();
+      renderAll();
+    }
+    function deletePlant(plantId) {
+      if (!confirm("Delete this plant?")) return;
+      savePlants(loadPlants().filter(function (p) { return p.id !== plantId; }));
+      selectedPlantIds.delete(plantId);
+      const dialog = document.getElementById("plant-detail");
+      if (dialog) dialog.close();
+      renderAll();
+    }
+
+    function showDetail(plantId) {
+      const plant = loadPlants().find(function (p) { return p.id === plantId; });
+      if (!plant) return;
+      lastDetailPlantId = plantId;
+      const status = dueStatus(plant, selectedDate);
+      const photoHTML = plant.photo
+        ? '<img src="' + plant.photo + '" style="max-width:200px; border-radius:4px;" alt="" />'
+        : '';
+      const historyHTML = (plant.history || []).slice(0, 10).map(function (h) {
+        return '<li>' + h.date + ' &mdash; ' + escapeHtml(h.status.replace("_", " ")) + '</li>';
+      }).join("");
+      const content = document.getElementById("plant-detail-content");
+      if (!content) return;
+      content.innerHTML =
+        photoHTML +
+        '<h3>' + escapeHtml(plant.name) + '</h3>' +
+        '<p>' + escapeHtml(plant.species || "(no species)") + '</p>' +
+        '<p>Area: ' + escapeHtml(plant.area || "(none)") + '</p>' +
+        '<p>Watering type: ' + escapeHtml(plant.watering_type || "—") + '</p>' +
+        '<p>Interval: every ' + plant.interval_days + ' days</p>' +
+        '<p>Last watered: ' + escapeHtml(plant.last_watered) + '</p>' +
+        '<p>Next due: ' + nextDueISO(plant) + ' (<span class="' + status.cls + '">' + status.label + '</span>)</p>' +
+        '<h4>Recent activity</h4>' +
+        '<ul>' + (historyHTML || '<li>No activity yet.</li>') + '</ul>';
+      const dialog = document.getElementById("plant-detail");
+      if (dialog && dialog.showModal) dialog.showModal();
+    }
+
+    function enterEditMode(plantId) {
+      const plant = loadPlants().find(function (p) { return p.id === plantId; });
+      if (!plant) return;
+      editingPlantId = plantId;
+      const form = document.getElementById("add-form");
+      if (!form) return;
+      form.elements.name.value = plant.name || "";
+      form.elements.species.value = plant.species || "";
+      form.elements.interval_days.value = plant.interval_days || "";
+      form.elements.last_watered.value = plant.last_watered || "";
+      setAreaRadio(plant.area);
+      document.querySelectorAll('input[name="watering_type"]').forEach(function (r) {
+        r.checked = (r.value === plant.watering_type);
+      });
+      const photoSpan = document.getElementById("current-photo");
+      if (photoSpan) {
+        photoSpan.innerHTML = plant.photo
+          ? '<img src="' + plant.photo + '" style="max-width:80px; vertical-align:middle; border-radius:4px;" alt="" />'
+          : "(none)";
+      }
+      const photoRow = document.getElementById("current-photo-row");
+      if (photoRow) photoRow.style.display = "block";
+      const heading = document.getElementById("form-heading");
+      if (heading) heading.textContent = "Edit plant";
+      const submitBtn = document.getElementById("submit-btn");
+      if (submitBtn) submitBtn.textContent = "Save changes";
+      const banner = document.getElementById("edit-banner");
+      if (banner) banner.style.display = "block";
+      const detail = document.getElementById("plant-detail");
+      if (detail) detail.close();
+      if (heading) heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function exitEditMode() {
+      editingPlantId = null;
+      const form = document.getElementById("add-form");
+      if (form) form.reset();
+      const heading = document.getElementById("form-heading");
+      if (heading) heading.textContent = "Add a plant";
+      const submitBtn = document.getElementById("submit-btn");
+      if (submitBtn) submitBtn.textContent = "Add plant";
+      const banner = document.getElementById("edit-banner");
+      if (banner) banner.style.display = "none";
+      const photoRow = document.getElementById("current-photo-row");
+      if (photoRow) photoRow.style.display = "none";
+      const photoSpan = document.getElementById("current-photo");
+      if (photoSpan) photoSpan.innerHTML = "";
+    }
+
+    function applyBatch(status) {
+      if (selectedPlantIds.size === 0) return;
+      const plants = loadPlants();
+      const today = todayISO();
+      for (const plant of plants) {
+        if (selectedPlantIds.has(plant.id)) applyWaterStatusToPlant(plant, status, today);
+      }
+      savePlants(plants);
+      selectedPlantIds.clear();
+      renderAll();
+    }
+    function clearSelection() {
+      selectedPlantIds.clear();
+      renderAll();
+    }
+
+    // ---- Defensive event listener helper ----
+    function bind(id, event, handler) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(event, handler);
+    }
+
+    // ---- Static element listeners ----
+    bind("reset-date", "click", function () {
+      selectedDate = todayISO();
+      const di = document.getElementById("watering-date");
+      if (di) di.value = selectedDate;
+      renderAll();
+    });
+    bind("watering-date", "change", function (e) {
+      selectedDate = e.target.value || todayISO();
+      renderAll();
+    });
+    bind("cancel-edit", "click", exitEditMode);
+    bind("edit-btn", "click", function () { if (lastDetailPlantId) enterEditMode(lastDetailPlantId); });
+    bind("delete-btn", "click", function () { if (lastDetailPlantId) deletePlant(lastDetailPlantId); });
+    bind("clear-selection", "click", clearSelection);
+
+    document.querySelectorAll("#selection-bar [data-batch-status]").forEach(function (btn) {
+      btn.addEventListener("click", function () { applyBatch(btn.dataset.batchStatus); });
     });
 
-    document.getElementById("export-btn").addEventListener("click", function () {
-      const plants = loadPlants();
-      const blob = new Blob([JSON.stringify(plants, null, 2)], { type: "application/json" });
+    document.querySelectorAll(".clear-radios-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () { clearRadioGroup(btn.dataset.clearGroup); });
+    });
+
+    // ---- Event delegation for dynamic content ----
+    document.body.addEventListener("click", function (e) {
+      const target = e.target;
+      if (target.dataset && target.dataset.areaAction) {
+        const area = target.dataset.area;
+        const idsInArea = loadPlants().filter(function (p) { return p.area === area; }).map(function (p) { return p.id; });
+        if (target.dataset.areaAction === "select") idsInArea.forEach(function (id) { selectedPlantIds.add(id); });
+        else idsInArea.forEach(function (id) { selectedPlantIds.delete(id); });
+        renderAll();
+        return;
+      }
+      const row = target.closest && target.closest("[data-plant-id]");
+      if (!row) return;
+      const plantId = row.dataset.plantId;
+      if (target.classList.contains("plant-name")) { showDetail(plantId); return; }
+      if (target.dataset && target.dataset.action === "toggle-select") {
+        if (target.checked) selectedPlantIds.add(plantId);
+        else selectedPlantIds.delete(plantId);
+        updateSelectionBar();
+        return;
+      }
+      if (target.dataset && target.dataset.action === "water") waterPlant(plantId, target.dataset.status);
+    });
+
+    // ---- Form submit ----
+    const addForm = document.getElementById("add-form");
+    if (addForm) {
+      addForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const photoFile = formData.get("photo");
+
+        if (editingPlantId) {
+          const plants = loadPlants();
+          const plant = plants.find(function (p) { return p.id === editingPlantId; });
+          if (!plant) { alert("Plant not found."); exitEditMode(); return; }
+          plant.name = formData.get("name");
+          plant.species = formData.get("species");
+          plant.area = formData.get("area");
+          plant.watering_type = formData.get("watering_type");
+          plant.interval_days = Number(formData.get("interval_days"));
+          plant.last_watered = formData.get("last_watered");
+          if (photoFile && photoFile.size > 0) {
+            try { plant.photo = await resizeImage(photoFile); }
+            catch (err) { alert("Could not process photo: " + err.message); return; }
+          }
+          savePlants(plants);
+          exitEditMode();
+          renderAll();
+        } else {
+          let photo = null;
+          try { photo = await resizeImage(photoFile); }
+          catch (err) { alert("Could not process photo: " + err.message); return; }
+          const plant = {
+            id: "plant-" + Date.now(),
+            name: formData.get("name"),
+            species: formData.get("species"),
+            area: formData.get("area"),
+            watering_type: formData.get("watering_type"),
+            interval_days: Number(formData.get("interval_days")),
+            last_watered: formData.get("last_watered"),
+            photo: photo,
+            next_check_override: null,
+            history: [],
+          };
+          const plants = loadPlants();
+          plants.push(plant);
+          savePlants(plants);
+          e.target.reset();
+          renderAll();
+        }
+      });
+    }
+
+    // ---- Export / Import ----
+    bind("export-btn", "click", function () {
+      const data = { plants: loadPlants() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = "plants.json";
-      a.click();
+      a.href = url; a.download = "plants.json"; a.click();
       URL.revokeObjectURL(url);
     });
-
-    document.getElementById("import-input").addEventListener("change", function (e) {
+    bind("import-input", "change", function (e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function () {
         try {
           const imported = JSON.parse(reader.result);
-          if (!Array.isArray(imported)) throw new Error("Imported file must be an array of plants");
-          savePlants(imported);
-          renderList();
-          alert("Imported " + imported.length + " plants.");
-        } catch (err) {
-          alert("Could not import: " + err.message);
-        }
+          if (Array.isArray(imported)) savePlants(imported);
+          else if (imported && Array.isArray(imported.plants)) savePlants(imported.plants);
+          else throw new Error("Unrecognized file format");
+          renderAll();
+          alert("Import successful.");
+        } catch (err) { alert("Could not import: " + err.message); }
       };
       reader.readAsText(file);
     });
 
-    renderList();
+    // ---- Initial render ----
+    try {
+      selectedDate = todayISO();
+      const dateInput = document.getElementById("watering-date");
+      if (dateInput) dateInput.value = selectedDate;
+      renderAll();
+    } catch (err) {
+      console.error("init failed:", err);
+    }
   </script>
 </body>
 </html>
