@@ -4,109 +4,721 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Plant Parenthood</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 16px auto; padding: 0 12px 80px; color: #222; }
-    h1, h2, h3, h4 { margin: 16px 0 8px; }
+    :root {
+      --c-bg-top: #f3f2f0;
+      --c-bg-bottom: #bcbcbc;
+      --c-text: #575757;
+      --c-text-muted: #84868F;
+      --c-text-light: #B0B2B6;
+      --c-text-ghost: #84868F;
+      --c-border: #B0B2B6;
+      --c-border-strong: #84868F;
+      --c-info-blue: #61cce5;
 
-    .radio-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+      --c-pink-dark: #e89ec2;
+      --c-pink-light: #f9cee1;
+      --c-mint-dark: #53cf9a;
+      --c-mint-light: #c9e8cd;
+      --c-yellow-dark: #fcf082;
+      --c-yellow-light: #f0f0e1;
+      --c-sky-dark: #61cce5;
+      --c-sky-light: #cae8e3;
+      --c-coral-dark: #ec736e;
+      --c-coral-light: #f5d8ca;
+
+      --c-pink-deep: #ec736e;
+      --c-coral: #ec736e;
+
+      --font-body: 'Geist Mono', 'IBM Plex Mono', 'Menlo', monospace;
+
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+
+      --noise: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='2' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.86   0 0 0 0 0.86   0 0 0 0 0.88   0 0 0 0.65 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");
+
+      --hover-pink: linear-gradient(to left, var(--c-pink-dark), var(--c-pink-light));
+
+      /* Red ladybug cursor for default state — small, hand-drawn, diagonal */
+      --cursor-red: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cg transform='rotate(-35 11 11)'%3E%3Cpath d='M4.5 12.5 Q4.2 7.8 11 7.2 Q17.8 7.6 17.5 12.6 Q17 17 11 17.2 Q5 17 4.5 12.5 Z' fill='%23E8584E' stroke='%235F616A' stroke-width='0.75' stroke-linejoin='round'/%3E%3Cpath d='M11 7.3 Q11.3 12 10.9 16.9' stroke='%235F616A' stroke-width='0.7' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='11' cy='6' rx='2.2' ry='1.5' fill='%235F616A'/%3E%3Ccircle cx='7.6' cy='10.5' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='7.8' cy='14.2' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='14.4' cy='10.5' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='14.2' cy='14.2' r='0.85' fill='%235F616A'/%3E%3Cpath d='M9.5 5 Q8.6 3.6 7.4 3' stroke='%235F616A' stroke-width='0.65' fill='none' stroke-linecap='round'/%3E%3Cpath d='M12.5 5 Q13.4 3.6 14.6 3' stroke='%235F616A' stroke-width='0.65' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E") 11 11;
+
+      /* Blue ladybug cursor for hover state — points right (+35°) */
+      --cursor-blue: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cg transform='rotate(35 11 11)'%3E%3Cpath d='M4.5 12.5 Q4.2 7.8 11 7.2 Q17.8 7.6 17.5 12.6 Q17 17 11 17.2 Q5 17 4.5 12.5 Z' fill='%234FAFD3' stroke='%235F616A' stroke-width='0.75' stroke-linejoin='round'/%3E%3Cpath d='M11 7.3 Q11.3 12 10.9 16.9' stroke='%235F616A' stroke-width='0.7' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='11' cy='6' rx='2.2' ry='1.5' fill='%235F616A'/%3E%3Ccircle cx='7.6' cy='10.5' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='7.8' cy='14.2' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='14.4' cy='10.5' r='0.85' fill='%235F616A'/%3E%3Ccircle cx='14.2' cy='14.2' r='0.85' fill='%235F616A'/%3E%3Cpath d='M9.5 5 Q8.6 3.6 7.4 3' stroke='%235F616A' stroke-width='0.65' fill='none' stroke-linecap='round'/%3E%3Cpath d='M12.5 5 Q13.4 3.6 14.6 3' stroke='%235F616A' stroke-width='0.65' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E") 11 11;
+    }
+
+    * { box-sizing: border-box; }
+
+    body, html {
+      cursor: var(--cursor-red), default;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      background-color: var(--c-bg-top);
+      background-image:
+        var(--noise),
+        linear-gradient(to bottom, var(--c-bg-top) 0%, var(--c-bg-top) 33%, var(--c-bg-bottom) 100%);
+      background-attachment: fixed, fixed;
+      background-repeat: repeat, no-repeat;
+      background-size: 320px 320px, 100% 100%;
+      color: var(--c-text);
+      max-width: 760px;
+      margin: 32px auto;
+      padding: 0 24px 100px;
+      line-height: 1.55;
+      font-size: 14px;
+      letter-spacing: -0.005em;
+    }
+
+    /* Scrollbars: transparent track, bg-top thumb (applies everywhere) */
+    * { scrollbar-width: thin; scrollbar-color: var(--c-bg-top) transparent; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--c-bg-top);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-corner { background: transparent; }
+
+    h1 {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 40px;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin: 0 0 32px;
+      color: var(--c-text);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: flex-end;
+    }
+
+    h2 {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 24px;
+      margin: 96px 0 20px;
+      letter-spacing: -0.015em;
+      padding-bottom: 10px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6' preserveAspectRatio='none'%3E%3Cpath d='M0 3 Q25 0 50 3 T100 3 T150 3 T200 3' stroke='%235F616A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: repeat-x;
+      background-position: left bottom;
+      background-size: 200px 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 16px;
+      margin: 24px 0 8px;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    h4 {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 12px;
+      margin: 16px 0 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--c-text-muted);
+    }
+
+    p { margin: 10px 0; }
+    a { color: var(--c-info-blue); }
+    label { font-weight: 400; font-size: 13px; }
+
+    .h1-doodle, .h2-doodle, .info-icon {
+      filter: url(#pencil);
+    }
+    .h1-doodle { width: 44px; height: 44px; flex-shrink: 0; color: var(--c-text); }
+    .h2-doodle { width: 34px; height: 34px; flex-shrink: 0; color: var(--c-text); }
+
+    input[type="text"], input[type="number"], input[type="date"], input[name], textarea {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 13px;
+      padding: 2px 11px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--c-text);
+      line-height: 1.5;
+      vertical-align: middle;
+    }
+    input[name="interval_days"] { width: 90px; }
+    input[name="name"], input[name="species"] { min-width: 200px; }
+    textarea {
+      padding: 10px 16px;
+      border-radius: 22px;
+      line-height: 1.5;
+      background: rgba(255, 255, 255, 0.45);
+      vertical-align: top;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--c-border-strong);
+    }
+    /* Calendar picker icon — tinted to match --c-text (currently #575757).
+       brightness(0) makes the icon solid black; invert(0.34) raises it to ~#575757.
+       Bump the percentage up (closer to 1) for a lighter icon, down for darker. */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: brightness(0) invert(0.34);
+      cursor: var(--cursor-blue), pointer;
+      opacity: 0.85;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
+    /* Buttons: hover cursor = BLUE ladybug */
+    button {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 13px;
+      padding: 2px 11px;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid var(--c-border-strong);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--c-text);
+      cursor: var(--cursor-blue), pointer;
+      transition: background 150ms ease, color 150ms ease, transform 100ms ease, border-color 150ms ease, background-image 150ms ease;
+      line-height: 1.5;
+      vertical-align: middle;
+    }
+    button:hover { background: rgba(255, 255, 255, 0.65); }
+    button:active { transform: scale(0.97); }
+    button svg { pointer-events: none; }
+
+    /* .pink-hover keeps regular pill size — only adds the pink gradient on hover */
+    .pink-hover {
+      vertical-align: middle;
+    }
+
+    .pink-hover:hover, button[type="submit"]:hover {
+      background-image: var(--noise), var(--hover-pink);
+      border-color: var(--c-border-strong);
+      color: var(--c-text);
+    }
+
+    /* Save and Add Plant button */
+    button[type="submit"] {
+      background-image:
+        var(--noise),
+        linear-gradient(to right, var(--c-sky-dark), var(--c-sky-light));
+      background-size: 320px 320px, 100% 100%;
+      background-repeat: repeat, no-repeat;
+      color: var(--c-text);
+      border-color: var(--c-border-strong);
+      padding: 4px 18px;
+      font-size: 13px;
+    }
+
+    /* Radio pills: default border is the LIGHTER gray (same as Watered/Skip buttons) */
+    .radio-buttons { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
     .radio-buttons input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
     .radio-buttons label {
-      display: inline-block; padding: 6px 12px;
-      border: 1px solid #999; border-radius: 4px;
-      cursor: pointer; user-select: none; background: #fff; font-size: 14px;
+      display: inline-block;
+      padding: 2px 11px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--radius-pill);
+      cursor: var(--cursor-blue), pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      font-weight: 400;
+      transition: all 150ms ease;
+      line-height: 1.5;
     }
     .radio-buttons input[type="radio"]:checked + label {
-      background: #333; color: #fff; border-color: #333;
+      background-image: var(--noise), linear-gradient(to right, var(--c-pink-dark), var(--c-pink-light));
+      color: var(--c-text);
+      border-color: var(--c-border);
     }
-    .radio-buttons input[type="radio"]:focus + label {
-      outline: 2px solid #4a90e2; outline-offset: 1px;
+    .radio-buttons input[type="radio"]:focus + label,
+    .radio-buttons input[type="radio"]:focus-visible + label {
+      outline: none;
     }
-    .clear-radios-btn { font-size: 11px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+    /* Pink-gradient hover for radio pills (unchecked) — matches Export/Import hover */
+    .radio-buttons input[type="radio"]:not(:checked) + label:hover {
+      background-image: var(--noise), var(--hover-pink);
+      border-color: var(--c-border);
+      color: var(--c-text);
+    }
+
+    .clear-radios-btn,
+    .area-actions button {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 10px;
+      padding: 1px 9px;
+      margin-left: 4px;
+      border: 1px solid var(--c-border-strong);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.4);
+      color: var(--c-text);
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+    /* Pink-gradient hover for Select all / Deselect all / Clear — matches Export/Import hover */
+    .clear-radios-btn:hover,
+    .area-actions button:hover {
+      background-image: var(--noise), var(--hover-pink);
+      border-color: var(--c-border);
+      color: var(--c-text);
+    }
+
+    .area-group { margin-bottom: 8px; }
+    .area-group .plant-row { margin-left: 28px; }
 
     .plant-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px; border: 1px solid #ddd; margin: 6px 0; border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 18px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1.5px solid var(--c-border);
+      margin-top: 8px;
+      margin-bottom: 8px;
+      border-radius: var(--radius-pill);
+      transition: border-color 150ms ease, background 150ms ease;
     }
+    .plant-row:hover { border-color: var(--c-border-strong); background: rgba(255, 255, 255, 0.55); }
+
     .plant-thumb {
-      width: 50px; height: 50px; object-fit: cover;
-      border-radius: 4px; background: #eee; flex-shrink: 0; display: inline-block;
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: var(--radius-pill);
+      background: transparent;
+      flex-shrink: 0;
+      display: inline-block;
     }
-    .plant-info { flex: 1; min-width: 0; }
-    .plant-name { cursor: pointer; text-decoration: underline dotted; }
-    .plant-actions button { margin-left: 4px; font-size: 12px; transition: background 150ms ease, color 150ms ease, border-color 150ms ease; }
+
+    .plant-info { flex: 1; min-width: 0; line-height: 1.45; font-size: 13px; }
+
+    .plant-name-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: var(--cursor-blue), pointer;
+    }
+    .plant-name { font-weight: 500; font-size: 14px; }
+    .plant-status-line { color: var(--c-text-muted); font-size: 12px; font-weight: 300; }
+    .info-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--c-sky-dark);
+      transition: color 150ms ease;
+      flex-shrink: 0;
+    }
+    .plant-name-wrap:hover .info-icon { color: var(--c-coral); }
+
+    .plant-actions { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .plant-actions button {
+      font-size: 11px;
+      padding: 2px 11px;
+      border: 1.5px solid var(--c-border);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--c-text);
+    }
+    .plant-actions button:hover {
+      background-image: var(--noise), linear-gradient(to left, var(--c-pink-dark), var(--c-pink-light));
+      border-color: var(--c-border);
+      color: var(--c-text);
+    }
+
     .plant-actions .btn-selected-water {
-      background: #2e7d32; color: #fff; border-color: #2e7d32;
+      background-image: var(--noise), linear-gradient(to right, var(--c-mint-dark), var(--c-mint-light));
+      border-color: var(--c-border);
+      color: var(--c-text);
     }
     .plant-actions .btn-selected-skip {
-      background: #1976d2; color: #fff; border-color: #1976d2;
+      background-image: var(--noise), linear-gradient(to right, var(--c-yellow-dark), var(--c-yellow-light));
+      border-color: var(--c-border);
+      color: var(--c-text);
     }
+    .check-big {
+      font-size: 1.3em;
+      font-weight: bold;
+      line-height: 0;
+      vertical-align: middle;
+      margin-right: 2px;
+    }
+
     .plant-actions .move-btn {
-      font-size: 13px; padding: 2px 6px; color: #888;
+      font-size: 13px;
+      padding: 2px 8px;
+      color: var(--c-text-muted);
+      border-color: transparent;
+      background: transparent;
     }
-    .plant-actions .move-btn:hover { color: #222; }
-    .plant-checkbox { margin-right: 6px; transform: scale(1.2); cursor: pointer; }
-    .area-actions { font-size: 12px; font-weight: normal; margin-left: 8px; }
-    .area-actions button { font-size: 11px; padding: 2px 6px; margin-left: 2px; }
-    .overdue { color: #c00; font-weight: bold; }
-    .due-today { color: #b85; font-weight: bold; }
+    .plant-actions .move-btn:hover {
+      color: var(--c-sky-dark);
+      background: transparent;
+      border-color: transparent;
+    }
 
-    .edit-banner { background: #fffbe5; border: 1px solid #d4b800; padding: 8px 12px; border-radius: 4px; margin: 8px 0; }
-    .edit-banner button { margin-left: 8px; }
+    .plant-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--c-border);
+      background: rgba(255, 255, 255, 0.5);
+      cursor: var(--cursor-blue), pointer;
+      margin-right: 2px;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 150ms ease;
+    }
+    .plant-checkbox:checked { background: var(--c-sky-dark); border-color: var(--c-border); }
+    .plant-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--c-bg-top);
+      transform: translate(-50%, -50%);
+    }
 
-    dialog { max-width: 480px; border: 1px solid #999; border-radius: 8px; padding: 16px; }
-    dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
-    .detail-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .detail-actions form { margin-left: auto; margin-bottom: 0; }
+    .due-today {
+      display: inline;
+      color: var(--c-coral);
+      font-weight: 500;
+      font-size: 12px;
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    .overdue {
+      display: inline-block;
+      padding: 1px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 500;
+      border: 1.5px solid var(--c-text);
+      background-image: var(--noise), linear-gradient(to right, var(--c-coral-dark), var(--c-coral-light));
+      color: var(--c-text);
+    }
+
+    /* Edit banner: plain inline text — Cancel edit button matches the small Select all / Clear pills */
+    .edit-banner {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 12px 0;
+      color: var(--c-coral-dark);
+      font-weight: 400;
+      font-size: 13px;
+    }
+    .edit-banner button {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 10px;
+      padding: 1px 9px;
+      margin-left: 4px;
+      border: 1px solid var(--c-border-strong);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.4);
+      color: var(--c-text);
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+    .edit-banner button:hover {
+      background-image: var(--noise), var(--hover-pink);
+      border-color: var(--c-border-strong);
+      color: var(--c-text);
+    }
+
+    /* Filename color: same as empty list (ghost) when empty */
+    .filename {
+      margin-left: 10px;
+      color: var(--c-text);
+      font-size: 12px;
+    }
+    .filename.is-empty {
+      color: var(--c-text-ghost);
+      font-style: italic;
+    }
+
+    .empty-list {
+      color: var(--c-text-ghost);
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    dialog {
+      max-width: 480px;
+      max-height: 85vh;
+      border: 1.5px solid var(--c-border-strong);
+      border-radius: 200px 200px 16px 16px;
+      padding: 60px 30px 24px;
+      background-color: var(--c-sky-light);
+      background-image: var(--noise), linear-gradient(to left, var(--c-sky-dark), var(--c-sky-light));
+      background-size: 320px 320px, 100% 100%;
+      background-repeat: repeat, no-repeat;
+      color: var(--c-text);
+    }
+    dialog:not([open]) { display: none; }
+    dialog[open] { display: flex; flex-direction: column; }
+    dialog::backdrop { background: rgba(82, 85, 96, 0.35); }
+    #plant-detail-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    .detail-sticky {
+      flex-shrink: 0;
+      text-align: center;
+      padding-bottom: 12px;
+    }
+    .detail-photo {
+      display: block;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+    }
+    .detail-sticky h3 { margin: 0 0 2px; font-size: 18px; justify-content: center; }
+    .detail-species {
+      margin: 0 0 4px;
+      text-align: center;
+      font-style: italic;
+      color: var(--c-text-muted);
+      font-size: 13px;
+    }
+    .detail-scroll {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      padding-right: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .detail-field { margin: 0; }
+    .detail-notes { margin-top: 14px; }
+    .detail-notes-body { margin: 0; white-space: pre-wrap; }
+    .detail-history { margin-top: 14px; }
+    .detail-history ul { margin: 0; padding-left: 18px; }
+    .detail-history li { margin: 0; }
+    .detail-actions { flex-shrink: 0; margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
     #selection-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
-      background: #333; color: #fff; padding: 10px 16px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 12px; flex-wrap: wrap;
+      background-color: var(--c-bg-top);
+      background-image: var(--noise);
+      background-size: 320px 320px;
+      background-repeat: repeat;
+      color: var(--c-text);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
       transform: translateY(110%);
       transition: transform 220ms ease-out;
-      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 -4px 24px rgba(82, 85, 96, 0.18);
+      border-top: 1.5px solid var(--c-text);
     }
     #selection-bar.visible { transform: translateY(0); }
-    #selection-bar button { font-size: 14px; padding: 6px 12px; }
-    #selection-bar .count { font-weight: bold; }
+    #selection-bar button {
+      font-size: 13px;
+      padding: 4px 14px;
+      color: var(--c-text);
+      border: 1.5px solid var(--c-text);
+      background-color: transparent;
+    }
+    #selection-bar [data-batch-status="watered"] {
+      background-image: var(--noise), linear-gradient(to right, var(--c-mint-light), var(--c-mint-dark));
+    }
+    #selection-bar [data-batch-status="watered"]:hover {
+      background-image: var(--noise), linear-gradient(to right, var(--c-mint-dark), var(--c-mint-light));
+    }
+    #selection-bar [data-batch-status="skipped_damp"] {
+      background-image: var(--noise), linear-gradient(to right, var(--c-yellow-light), var(--c-yellow-dark));
+    }
+    #selection-bar [data-batch-status="skipped_damp"]:hover {
+      background-image: var(--noise), linear-gradient(to right, var(--c-yellow-dark), var(--c-yellow-light));
+    }
+    #selection-bar #clear-selection {
+      background-image: var(--noise), linear-gradient(to right, var(--c-pink-light), var(--c-pink-dark));
+    }
+    #selection-bar #clear-selection:hover {
+      background-image: var(--noise), linear-gradient(to right, var(--c-pink-dark), var(--c-pink-light));
+    }
+    #selection-bar .count { font-weight: 500; font-size: 13px; }
 
-    #suggest-status, #sitter-status { color: #666; font-size: 13px; }
-    #suggest-status.error, #sitter-status.error { color: #c00; }
-    textarea[name="notes"] { width: 100%; max-width: 400px; box-sizing: border-box; font-family: inherit; font-size: 14px; padding: 6px; }
+    #suggest-status, #sitter-status { color: var(--c-text-muted); font-size: 12px; }
+    #suggest-status.error, #sitter-status.error { color: var(--c-coral); }
+
+    textarea[name="notes"] {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    @media (max-width: 600px) {
+      body { margin: 16px auto; padding: 0 16px 110px; font-size: 14px; }
+      h1 { font-size: 30px; margin-bottom: 24px; }
+      .h1-doodle { width: 34px; height: 34px; }
+      h2 { font-size: 20px; margin-top: 68px; }
+      .h2-doodle { width: 28px; height: 28px; }
+      h3 { font-size: 15px; margin-top: 20px; }
+      .area-group .plant-row { margin-left: 16px; }
+      .plant-row { padding: 8px 16px; gap: 10px; }
+      .plant-thumb { width: 44px; height: 44px; }
+      .plant-actions { gap: 4px; }
+      .plant-actions button { font-size: 10px; padding: 2px 9px; }
+      input[name="interval_days"] { width: 80px; }
+      textarea[name="notes"] { width: 100%; }
+      #selection-bar { padding: 10px 14px; gap: 8px; }
+      #selection-bar button { font-size: 12px; padding: 3px 12px; }
+    }
+
+    @media (max-width: 420px) {
+      h1 { font-size: 26px; }
+      .plant-row { flex-wrap: wrap; }
+      .plant-info { flex-basis: calc(100% - 60px); }
+      .plant-actions { flex-basis: 100%; justify-content: flex-end; padding-left: 60px; }
+      .area-group .plant-row { margin-left: 8px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Plant Parenthood</h1>
+  <svg width="0" height="0" style="position:absolute;overflow:hidden;" aria-hidden="true">
+    <defs>
+      <filter id="pencil" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="3"/>
+        <feDisplacementMap in="SourceGraphic" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
 
-  <h2>Watering schedule</h2>
+  <h1>
+    <svg class="h1-doodle" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Butterfly -->
+      <!-- body -->
+      <ellipse cx="25" cy="25" rx="1.4" ry="10" stroke="currentColor" stroke-width="1.6" fill="none"/>
+      <!-- top left wing -->
+      <path d="M24 19 Q14 12 8 18 Q9 26 24 26 Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <!-- top right wing -->
+      <path d="M26 19 Q36 12 42 18 Q41 26 26 26 Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <!-- bottom left wing -->
+      <path d="M24 27 Q14 30 13 38 Q19 39 24 32 Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <!-- bottom right wing -->
+      <path d="M26 27 Q36 30 37 38 Q31 39 26 32 Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <!-- antennae -->
+      <path d="M24 16 Q21 12 19 10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M26 16 Q29 12 31 10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    Plant Parenthood
+  </h1>
+
+  <h2>
+    <svg class="h2-doodle" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g transform="rotate(180 16 16)">
+        <path d="M16 28 Q16.5 18 16 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M16 27 Q6 24 4 14 Q4 8 10 8 Q14 8 16 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M16 27 Q26 24 28 14 Q28 8 22 8 Q18 8 16 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M9 14 L13 14 M19 14 L23 14 M10 21 L14 21 M18 21 L22 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+    </svg>
+    Watering schedule
+  </h2>
   <p>
     Show plants due by <input type="date" id="watering-date" />
-    <button type="button" id="reset-date">Today</button>
+    <button type="button" id="reset-date" class="pink-hover">Today</button>
   </p>
   <div id="today-list"></div>
 
-  <h2>Sitter guide</h2>
+  <h2>
+    <svg class="h2-doodle" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Caterpillar -->
+      <circle cx="5" cy="20" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <circle cx="10" cy="19" r="3.2" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <circle cx="15" cy="19" r="3.2" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <circle cx="20" cy="18" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <circle cx="25" cy="17" r="3.5" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <circle cx="26" cy="16.5" r="0.7" fill="currentColor"/>
+      <path d="M 23.5 18 Q 25 19 27 18.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M 24 14 Q 23 11 22 10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M 27 14 Q 28 11 29 10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    Sitter guide
+  </h2>
   <p>Generates a printable guide for one sitter visit. Includes plants needing attention around that date, grouped by area and watering method.</p>
   <p>
     <label>Visit date <input type="date" id="visit-date" /></label>
-    <button type="button" id="generate-sitter-btn">Generate sitter guide</button>
+    <button type="button" id="generate-sitter-btn" class="pink-hover">Generate sitter guide</button>
     <span id="sitter-status"></span>
   </p>
 
-  <h2>All plants</h2>
+  <h2>
+    <svg class="h2-doodle" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Snail -->
+      <!-- foot / body underneath -->
+      <path d="M4 25 Q4 22 8 22 L24 22 Q27 22 27 25 Q26 26 24 26 L7 26 Q4.5 26 4 25 Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- shell outer -->
+      <circle cx="13" cy="15" r="7.5" stroke="currentColor" stroke-width="1.7" fill="none"/>
+      <!-- shell spiral inside -->
+      <path d="M13 15 Q14 13 15.5 14 Q17 16 14.5 17.5 Q11 17.5 10 15 Q10 11 13.5 10.5 Q18 11 18.5 14" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- eye stalks -->
+      <path d="M24 22 Q25 14 26.5 8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M21 22 Q22 17 23 11.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- eye dots -->
+      <circle cx="26.7" cy="7.3" r="1.2" fill="currentColor"/>
+      <circle cx="23.2" cy="10.8" r="1.2" fill="currentColor"/>
+    </svg>
+    All plants
+  </h2>
   <div id="all-plants"></div>
 
-  <h2 id="form-heading">Add a plant</h2>
+  <h2 id="form-heading">
+    <svg class="h2-doodle" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M11 22 L13 30 L19 30 L21 22 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      <path d="M16 22 Q16 17 16 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M16 17 Q11 17 10 12 Q12 12 16 14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+      <path d="M16 14 Q21 14 22 9 Q19 9 16 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+    </svg>
+    Add a plant
+  </h2>
   <div id="edit-banner" class="edit-banner" style="display:none;">
-    Editing an existing plant.
+    <i>Editing an existing plant.</i>
     <button type="button" id="cancel-edit">Cancel edit</button>
   </div>
   <form id="add-form">
-    <p><label>Name <input name="name" required /></label></p>
+    <p>
+      <label>Name <input name="name" required /></label>
+      <button type="button" id="add-photo-btn" class="pink-hover">Add a photo</button>
+      <span id="photo-filename" class="filename is-empty">no file</span>
+      <input type="file" id="photo-input" name="photo" accept="image/*" style="display:none;" />
+    </p>
+    <p id="current-photo-row" style="display:none;">
+      Current photo: <span id="current-photo"></span>
+    </p>
     <p>
       <label>Species <input name="species" id="species-input" /></label>
-      <button type="button" id="suggest-care-btn">Suggest care info</button>
+      <button type="button" id="suggest-care-btn" class="pink-hover">Suggest care info</button>
       <span id="suggest-status" style="display:none;"></span>
     </p>
     <p>
@@ -145,34 +757,37 @@
         <label for="wt-change">Change water</label>
       </span>
     </p>
-    <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" required /></label></p>
-    <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
+    <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" step="1" inputmode="numeric" pattern="[0-9]*" required /></label></p>
     <p>
       <label>Notes<br />
         <textarea name="notes" rows="3" placeholder="Light needs, soil, common issues..."></textarea>
       </label>
     </p>
-    <p id="current-photo-row" style="display:none;">
-      Current photo: <span id="current-photo"></span>
-    </p>
-    <p><label>Photo <input name="photo" type="file" accept="image/*" /></label></p>
-    <button type="submit" id="submit-btn">Add plant</button>
+    <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
+    <button type="submit" id="submit-btn">Save and add plant</button>
   </form>
 
-  <h2>Backup</h2>
+  <h2>
+    <svg class="h2-doodle" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M16 30 Q16 22 16 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M16 23 Q12 21 10 16 Q12 18 16 19" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+      <path d="M16 14 Q12 12 12 7 Q14 6 16 8 Q18 6 20 7 Q20 12 16 14 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+    </svg>
+    Backup
+  </h2>
   <p>
-    <button id="export-btn">Export JSON</button>
-    <label> Import JSON: <input type="file" id="import-input" accept="application/json" /></label>
+    <button id="export-btn" class="pink-hover">Export Data</button>
+    <button id="import-btn" class="pink-hover">Import Data</button>
+    <span id="import-filename" class="filename is-empty">no file</span>
+    <input type="file" id="import-input" accept="application/json" style="display:none;" />
   </p>
 
   <dialog id="plant-detail">
     <div id="plant-detail-content"></div>
     <div class="detail-actions">
-      <button type="button" id="edit-btn">Edit plant</button>
-      <button type="button" id="delete-btn">Delete plant</button>
-      <form method="dialog">
-        <button>Close</button>
-      </form>
+      <button type="button" id="edit-btn" class="pink-hover">Edit plant</button>
+      <button type="button" id="delete-btn" class="pink-hover">Delete plant</button>
+      <button type="button" id="close-btn" class="pink-hover">Close</button>
     </div>
   </dialog>
 
@@ -252,7 +867,7 @@
       if (isNaN(d.getTime())) return iso;
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return days[d.getDay()] + " " + months[d.getMonth()] + " " + d.getDate();
+      return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate();
     }
     function nextDueISO(plant) {
       if (plant.next_check_override) return plant.next_check_override;
@@ -330,28 +945,43 @@
 
       const wateredClass = wateredSelected ? "btn-selected-water" : "";
       const skipClass = skipSelected ? "btn-selected-skip" : "";
-      const wateredLabel = (wateredSelected ? "&#10003; " : "") + "Watered";
-      const skipLabel = (skipSelected ? "&#10003; " : "") + "Skip (damp)";
+      const bigCheck = '<span class="check-big">&#10003;</span> ';
+      const wateredLabel = (wateredSelected ? bigCheck : "") + "Watered";
+      const skipLabel = (skipSelected ? bigCheck : "") + "Skip (damp)";
 
       const photoHTML = plant.photo
         ? '<img class="plant-thumb" src="' + plant.photo + '" alt="" />'
         : '<span class="plant-thumb"></span>';
 
+      const upArrowSvg = '<svg viewBox="0 0 16 16" width="13" height="13" style="vertical-align:-2px"><path d="M8 13 Q8.2 8 8.1 3 M4 6.5 Q6 4.8 8 3 Q10.2 5 12 6.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const downArrowSvg = '<svg viewBox="0 0 16 16" width="13" height="13" style="vertical-align:-2px"><path d="M8 3 Q7.9 8 8.1 13 M4 9.5 Q6 11.2 8 13 Q10.2 11 12 9.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const reorderHTML = showReorder
-        ? '<button type="button" class="move-btn" data-action="move-up" title="Move up within area">&uarr;</button>' +
-          '<button type="button" class="move-btn" data-action="move-down" title="Move down within area">&darr;</button>'
+        ? '<button type="button" class="move-btn" data-action="move-up" title="Move up within area">' + upArrowSvg + '</button>' +
+          '<button type="button" class="move-btn" data-action="move-down" title="Move down within area">' + downArrowSvg + '</button>'
         : '';
+
+      // Eye icon — open eye with pupil and a few hand-drawn lashes
+      const eyeSvg = '<svg class="info-icon" viewBox="0 0 16 16" aria-hidden="true">' +
+        '<ellipse cx="8" cy="9" rx="6" ry="3.5" stroke="currentColor" stroke-width="1.6" fill="none"/>' +
+        '<circle cx="8" cy="9" r="1.5" fill="currentColor"/>' +
+        '<path d="M3.5 6.2 Q3 4.5 2.3 3.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M5.5 5.4 Q5.2 3.6 4.8 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M8 5.1 Q8 3.4 8 2" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M10.5 5.4 Q10.8 3.6 11.2 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M12.5 6.2 Q13 4.5 13.7 3.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '</svg>';
 
       return (
         '<div class="plant-row" data-plant-id="' + escapeHtml(plant.id) + '">' +
           '<input type="checkbox" class="plant-checkbox" data-action="toggle-select"' + (isSelected ? ' checked' : '') + ' />' +
           photoHTML +
           '<div class="plant-info">' +
-            '<strong class="plant-name">' + escapeHtml(plant.name) + '</strong>' +
-            (plant.species ? ' <span style="color:#666;">(' + escapeHtml(plant.species) + ')</span>' : '') +
+            '<span class="plant-name-wrap" data-action="show-detail">' +
+              '<strong class="plant-name">' + escapeHtml(plant.name) + '</strong>' +
+              eyeSvg +
+            '</span>' +
             '<br />' +
-            '<span class="' + status.cls + '">' + status.label + '</span>' +
-            ' &middot; ' + escapeHtml(plant.area || "") +
+            '<span class="plant-status-line"><span class="' + status.cls + '">' + status.label + '</span></span>' +
           '</div>' +
           '<div class="plant-actions">' +
             '<button type="button" class="' + wateredClass + '" data-action="water" data-status="watered">' + wateredLabel + '</button>' +
@@ -365,24 +995,27 @@
     function renderGroupedByArea(plants, container, emptyMessage, showReorder) {
       if (!container) return;
       if (plants.length === 0) {
-        container.innerHTML = '<p style="color:#888;">' + emptyMessage + '</p>';
+        container.innerHTML = '<p class="empty-list">' + emptyMessage + '</p>';
         return;
       }
       const byArea = {};
+      const order = [];
       for (const plant of plants) {
         const key = plant.area || "(no area)";
-        if (!byArea[key]) byArea[key] = [];
+        if (!byArea[key]) { byArea[key] = []; order.push(key); }
         byArea[key].push(plant);
       }
-      container.innerHTML = Object.keys(byArea).map(function (area) {
+      container.innerHTML = order.map(function (area) {
         const areaSafe = escapeHtml(area);
         const headerActions =
-          ' <span class="area-actions">' +
+          '<span class="area-actions">' +
             '<button type="button" data-area-action="select" data-area="' + areaSafe + '">Select all</button>' +
-            '<button type="button" data-area-action="deselect" data-area="' + areaSafe + '">Deselect</button>' +
+            '<button type="button" data-area-action="deselect" data-area="' + areaSafe + '">Deselect all</button>' +
           '</span>';
-        return '<h3>' + areaSafe + headerActions + '</h3>' +
-          byArea[area].map(function (p) { return plantRowHTML(p, showReorder); }).join("");
+        return '<div class="area-group">' +
+          '<h3>' + areaSafe + ' ' + headerActions + '</h3>' +
+          byArea[area].map(function (p) { return plantRowHTML(p, showReorder); }).join("") +
+        '</div>';
       }).join("");
     }
 
@@ -432,10 +1065,6 @@
       renderAll();
     }
 
-    // Move a plant up or down within its area. Swaps with the nearest adjacent
-    // plant in the same area in the underlying plants array; renderGroupedByArea
-    // displays plants in array order within each area, so the swap is reflected
-    // visually. The same array order also drives the sitter guide output.
     function moveInArea(plantId, direction) {
       const plants = loadPlants();
       const plantIdx = plants.findIndex(function (p) { return p.id === plantId; });
@@ -459,13 +1088,22 @@
       renderAll();
     }
 
+    function closeDetailDialog() {
+      const dialog = document.getElementById("plant-detail");
+      if (dialog && dialog.open) dialog.close();
+    }
+
     function deletePlant(plantId) {
       if (!confirm("Delete this plant?")) return;
       savePlants(loadPlants().filter(function (p) { return p.id !== plantId; }));
       selectedPlantIds.delete(plantId);
-      const dialog = document.getElementById("plant-detail");
-      if (dialog) dialog.close();
+      closeDetailDialog();
       renderAll();
+    }
+
+    function statusLabel(status) {
+      if (status === "skipped_damp") return "skipped (damp)";
+      return status.replace("_", " ");
     }
 
     function showDetail(plantId) {
@@ -474,31 +1112,40 @@
       lastDetailPlantId = plantId;
       const status = dueStatus(plant, selectedDate);
       const photoHTML = plant.photo
-        ? '<img src="' + plant.photo + '" style="max-width:200px; border-radius:4px;" alt="" />'
+        ? '<img class="detail-photo" src="' + plant.photo + '" alt="" />'
         : '';
       const historyHTML = (plant.history || []).slice(0, 10).map(function (h) {
-        return '<li>' + escapeHtml(formatDateNice(h.date)) + ' &mdash; ' + escapeHtml(h.status.replace("_", " ")) + '</li>';
+        return '<li>' + escapeHtml(formatDateNice(h.date)) + ' &mdash; ' + escapeHtml(statusLabel(h.status)) + '</li>';
       }).join("");
       const notesHTML = plant.notes
-        ? '<p><strong>Notes:</strong><br />' + escapeHtml(plant.notes).replace(/\n/g, "<br />") + '</p>'
+        ? '<div class="detail-notes"><div><strong>Notes:</strong></div><p class="detail-notes-body">' + escapeHtml(plant.notes).replace(/\n/g, "<br />") + '</p></div>'
         : '';
       const lastWateredNice = plant.last_watered ? formatDateNice(plant.last_watered) : "(never)";
       const nextDueRaw = nextDueISO(plant);
       const nextDueNice = nextDueRaw ? formatDateNice(nextDueRaw) : "(no schedule)";
+      const speciesHTML = plant.species
+        ? '<p class="detail-species">' + escapeHtml(plant.species) + '</p>'
+        : '';
       const content = document.getElementById("plant-detail-content");
       if (!content) return;
       content.innerHTML =
-        photoHTML +
-        '<h3>' + escapeHtml(plant.name) + '</h3>' +
-        '<p>' + escapeHtml(plant.species || "(no species)") + '</p>' +
-        '<p>Area: ' + escapeHtml(plant.area || "(none)") + '</p>' +
-        '<p>Watering type: ' + escapeHtml(plant.watering_type || "—") + '</p>' +
-        '<p>Interval: every ' + plant.interval_days + ' days</p>' +
-        '<p>Last watered: ' + escapeHtml(lastWateredNice) + '</p>' +
-        '<p>Next due: ' + escapeHtml(nextDueNice) + ' (<span class="' + status.cls + '">' + status.label + '</span>)</p>' +
-        notesHTML +
-        '<h4>Recent activity</h4>' +
-        '<ul>' + (historyHTML || '<li>No activity yet.</li>') + '</ul>';
+        '<div class="detail-sticky">' +
+          photoHTML +
+          '<h3>' + escapeHtml(plant.name) + '</h3>' +
+          speciesHTML +
+        '</div>' +
+        '<div class="detail-scroll">' +
+          '<div class="detail-field"><strong>Area:</strong> ' + escapeHtml(plant.area || "(none)") + '</div>' +
+          '<div class="detail-field"><strong>Watering type:</strong> ' + escapeHtml(plant.watering_type || "—") + '</div>' +
+          '<div class="detail-field"><strong>Interval:</strong> every ' + plant.interval_days + ' days</div>' +
+          '<div class="detail-field"><strong>Last watered:</strong> ' + escapeHtml(lastWateredNice) + '</div>' +
+          '<div class="detail-field"><strong>Next due:</strong> ' + escapeHtml(nextDueNice) + ' (<span class="' + status.cls + '">' + status.label + '</span>)</div>' +
+          notesHTML +
+          '<div class="detail-history">' +
+            '<div><strong>Recent activity:</strong></div>' +
+            '<ul>' + (historyHTML || '<li>No activity yet.</li>') + '</ul>' +
+          '</div>' +
+        '</div>';
       const dialog = document.getElementById("plant-detail");
       if (dialog && dialog.showModal) dialog.showModal();
     }
@@ -521,19 +1168,25 @@
       const photoSpan = document.getElementById("current-photo");
       if (photoSpan) {
         photoSpan.innerHTML = plant.photo
-          ? '<img src="' + plant.photo + '" style="max-width:80px; vertical-align:middle; border-radius:4px;" alt="" />'
+          ? '<img src="' + plant.photo + '" style="max-width:80px; vertical-align:middle; border-radius:var(--radius-pill);" alt="" />'
           : "(none)";
       }
       const photoRow = document.getElementById("current-photo-row");
       if (photoRow) photoRow.style.display = "block";
       const heading = document.getElementById("form-heading");
-      if (heading) heading.textContent = "Edit plant";
+      if (heading) {
+        for (const node of heading.childNodes) {
+          if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim()) {
+            node.nodeValue = " Edit plant";
+            break;
+          }
+        }
+      }
       const submitBtn = document.getElementById("submit-btn");
       if (submitBtn) submitBtn.textContent = "Save changes";
       const banner = document.getElementById("edit-banner");
       if (banner) banner.style.display = "block";
-      const detail = document.getElementById("plant-detail");
-      if (detail) detail.close();
+      closeDetailDialog();
       if (heading) heading.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function exitEditMode() {
@@ -541,15 +1194,27 @@
       const form = document.getElementById("add-form");
       if (form) form.reset();
       const heading = document.getElementById("form-heading");
-      if (heading) heading.textContent = "Add a plant";
+      if (heading) {
+        for (const node of heading.childNodes) {
+          if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim()) {
+            node.nodeValue = " Add a plant";
+            break;
+          }
+        }
+      }
       const submitBtn = document.getElementById("submit-btn");
-      if (submitBtn) submitBtn.textContent = "Add plant";
+      if (submitBtn) submitBtn.textContent = "Save and add plant";
       const banner = document.getElementById("edit-banner");
       if (banner) banner.style.display = "none";
       const photoRow = document.getElementById("current-photo-row");
       if (photoRow) photoRow.style.display = "none";
       const photoSpan = document.getElementById("current-photo");
       if (photoSpan) photoSpan.innerHTML = "";
+      const photoFilename = document.getElementById("photo-filename");
+      if (photoFilename) {
+        photoFilename.textContent = "no file";
+        photoFilename.classList.add("is-empty");
+      }
     }
 
     function applyBatch(status) {
@@ -578,7 +1243,19 @@
       if (el) el.addEventListener(event, handler);
     }
 
-    // --- Suggest care info ---
+    const intervalInput = document.querySelector('input[name="interval_days"]');
+    if (intervalInput) {
+      intervalInput.addEventListener("input", function (e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, "");
+      });
+      intervalInput.addEventListener("keydown", function (e) {
+        const allow = ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+        if (allow.indexOf(e.key) !== -1) return;
+        if (e.metaKey || e.ctrlKey) return;
+        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+      });
+    }
+
     async function suggestCare() {
       const speciesInput = document.getElementById("species-input");
       const species = (speciesInput.value || "").trim();
@@ -586,7 +1263,7 @@
       const btn = document.getElementById("suggest-care-btn");
 
       if (!species) {
-        status.classList.add("error");
+        status.classList.remove("error");
         status.style.display = "inline";
         status.textContent = "Type a species name first.";
         return;
@@ -629,7 +1306,24 @@
     }
     bind("suggest-care-btn", "click", suggestCare);
 
-    // --- Sitter guide ---
+    // Pull live CSS variable values from the main app so the sitter guide auto-matches the palette.
+    const SITTER_PALETTE_VARS = [
+      "--c-bg-top", "--c-bg-bottom",
+      "--c-text", "--c-text-muted",
+      "--c-border", "--c-border-strong",
+      "--c-yellow-dark", "--c-yellow-light",
+      "--c-pink-dark", "--c-pink-light",
+      "--c-mint-dark", "--c-mint-light",
+      "--c-sky-dark", "--c-sky-light",
+      "--c-coral-dark", "--c-coral-light",
+    ];
+    function getPaletteRootBlock() {
+      const root = getComputedStyle(document.documentElement);
+      return ":root { " + SITTER_PALETTE_VARS.map(function (v) {
+        return v + ": " + root.getPropertyValue(v).trim() + ";";
+      }).join(" ") + " }";
+    }
+
     function buildSitterGuideHTML(plants, briefsById, visitDate) {
       function esc(str) {
         if (str == null) return "";
@@ -637,10 +1331,7 @@
           .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
       }
-
       const visitDateNice = formatDateNice(visitDate);
-
-      // Group: area -> watering_type -> [plants], all preserving array order
       const grouped = {};
       const areaOrder = [];
       const methodOrder = {};
@@ -651,7 +1342,6 @@
         if (!grouped[area][method]) { grouped[area][method] = []; methodOrder[area].push(method); }
         grouped[area][method].push(plant);
       }
-
       let bodyHTML = "";
       for (const area of areaOrder) {
         bodyHTML += '<h2>' + esc(area) + '</h2>';
@@ -665,84 +1355,55 @@
               ? '<img src="' + plant.photo + '" alt="" />'
               : '<div class="no-photo"></div>';
             bodyHTML +=
-              '<div class="plant">' +
-                photoHTML +
+              '<div class="plant">' + photoHTML +
                 '<div class="plant-info">' +
                   '<span class="plant-name">' + esc(plant.name) + '</span> ' +
                   '<span class="due">' + esc(dueText) + '</span>' +
                   '<p class="brief">' + esc(brief) + '</p>' +
-                '</div>' +
-              '</div>';
+                '</div></div>';
           }
         }
       }
-
-      return '<!DOCTYPE html>\n' +
-        '<html lang="en">\n' +
-        '<head>\n' +
-        '<meta charset="UTF-8">\n' +
-        '<title>Plant care visit (' + esc(visitDateNice) + ')</title>\n' +
-        '<style>\n' +
-        '  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; color: #222; line-height: 1.5; }\n' +
-        '  .header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }\n' +
-        '  h1 { font-size: 24px; margin: 0; }\n' +
-        '  .visit-date { color: #666; margin: 0; font-size: 16px; }\n' +
-        '  .print-btn { padding: 6px 12px; font-size: 14px; cursor: pointer; margin-left: auto; }\n' +
-        '  .hint { color: #888; font-size: 13px; margin: 4px 0 16px; font-style: italic; }\n' +
-        '  .editable { padding: 8px; border: 1px dashed transparent; border-radius: 6px; }\n' +
-        '  .editable:focus-within { border-color: #ccc; background: #fafafa; }\n' +
-        '  .intro { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; margin: 0 0 24px; }\n' +
-        '  .intro p { margin: 0 0 8px; }\n' +
-        '  .intro ul { margin: 0; padding-left: 20px; }\n' +
-        '  .intro li { margin: 4px 0; }\n' +
-        '  h2 { font-size: 18px; margin: 24px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #333; }\n' +
-        '  h3 { font-size: 13px; margin: 12px 0 4px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }\n' +
-        '  .plant { display: flex; gap: 12px; margin: 4px 0; padding: 6px 0; page-break-inside: avoid; }\n' +
-        '  .plant img, .no-photo { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: #eee; }\n' +
-        '  .plant-info { flex: 1; }\n' +
-        '  .plant-name { font-weight: 500; }\n' +
-        '  .due { color: #666; font-size: 13px; }\n' +
-        '  .brief { margin: 2px 0 0; }\n' +
-        '  @media print {\n' +
-        '    body { max-width: 100%; margin: 12px; }\n' +
-        '    .print-btn, .hint { display: none; }\n' +
-        '    .editable { border: none; padding: 0; background: transparent; }\n' +
-        '  }\n' +
-        '</style>\n' +
-        '</head>\n' +
-        '<body>\n' +
-        '<div class="header">\n' +
-        '<h1>Plant care visit</h1>\n' +
-        '<p class="visit-date">' + esc(visitDateNice) + '</p>\n' +
-        '<button class="print-btn" onclick="window.print()">Print or save as PDF</button>\n' +
-        '</div>\n' +
-        '<p class="hint">Click any text below to edit it. Print when ready.</p>\n' +
-        '<div class="editable" contenteditable="true">\n' +
-        '<div class="intro">\n' +
-        '<p><strong>Hi! Thanks so much for watering my plants.</strong></p>\n' +
-        '<ul>\n' +
-        '<li>Use the moisture meter (probably on the plant table) before watering. If you can\'t find it, check soil with your finger about 1 inch deep.</li>\n' +
-        '<li>If a plant\'s soil feels damp, give it a smaller amount of water than usual or just skip it. Let me know which ones you adjusted so I can re-check when I\'m back.</li>\n' +
-        '<li>If anything looks really wrong, text me!</li>\n' +
-        '</ul>\n' +
-        '</div>\n' +
-        bodyHTML + '\n' +
-        '</div>\n' +
-        '</body>\n' +
-        '</html>';
+      return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="UTF-8">' +
+        '<title>Plant care visit (' + esc(visitDateNice) + ')</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">' +
+        '<style>' + getPaletteRootBlock() +
+        ' body { font-family: \'Geist Mono\', monospace; max-width: 720px; margin: 32px auto; padding: 0 20px; color: var(--c-text); line-height: 1.55; background: linear-gradient(to bottom, var(--c-bg-top) 0%, var(--c-bg-top) 33%, var(--c-bg-bottom) 100%); background-attachment: fixed; font-size: 14px; }' +
+        '.header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }' +
+        'h1 { font-family: \'Geist Mono\', monospace; font-weight: 400; font-size: 32px; margin: 0; letter-spacing: -0.02em; color: var(--c-text); }' +
+        '.visit-date { color: var(--c-text-muted); margin: 0; font-size: 14px; }' +
+        '.print-btn { padding: 4px 16px; font-size: 13px; cursor: pointer; margin-left: auto; border-radius: 999px; border: 1.5px solid var(--c-text); background: rgba(255,255,255,0.5); color: var(--c-text); font-family: \'Geist Mono\', monospace; }' +
+        '.hint { color: var(--c-text-muted); font-size: 12px; margin: 4px 0 16px; font-style: italic; }' +
+        '.editable { padding: 12px; border: 1.5px dashed transparent; border-radius: 12px; }' +
+        '.editable:focus-within { border-color: var(--c-border); background: rgba(255, 255, 255, 0.4); }' +
+        '.intro { background: linear-gradient(to right, var(--c-yellow-dark), var(--c-yellow-light)); padding: 12px 20px; border-radius: 999px; margin: 0 0 24px; border: 1.5px solid var(--c-text); font-size: 13px; color: var(--c-text); }' +
+        '.intro p { margin: 0 0 6px; } .intro ul { margin: 0; padding-left: 20px; } .intro li { margin: 4px 0; }' +
+        'h2 { font-family: \'Geist Mono\', monospace; font-weight: 400; font-size: 20px; margin: 28px 0 4px; padding-bottom: 6px; border-bottom: 1.5px solid var(--c-text); color: var(--c-text); }' +
+        'h3 { font-family: \'Geist Mono\', monospace; font-weight: 500; font-size: 12px; margin: 14px 0 6px; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }' +
+        '.plant { display: flex; gap: 14px; margin: 6px 0; padding: 8px 0; page-break-inside: avoid; }' +
+        '.plant img, .no-photo { width: 60px; height: 60px; object-fit: cover; border-radius: 999px; flex-shrink: 0; background: rgba(255,255,255,0.4); }' +
+        '.plant-info { flex: 1; } .plant-name { font-weight: 500; font-size: 14px; color: var(--c-text); }' +
+        '.due { color: var(--c-text-muted); font-size: 12px; margin-left: 6px; } .brief { margin: 4px 0 0; font-size: 13px; color: var(--c-text); }' +
+        '@media print { body { max-width: 100%; margin: 12px; background: white; } .print-btn, .hint { display: none; } .editable { border: none; padding: 0; background: transparent; } .intro { border-radius: 12px; } }' +
+        '</style></head><body>' +
+        '<div class="header"><h1>Plant care visit</h1><p class="visit-date">' + esc(visitDateNice) + '</p>' +
+        '<button class="print-btn" onclick="window.print()">Print or save as PDF</button></div>' +
+        '<p class="hint">Click any text below to edit it. Print when ready.</p>' +
+        '<div class="editable" contenteditable="true"><div class="intro"><p><strong>Hi! Thanks so much for watering my plants.</strong></p><ul>' +
+        '<li>Use the moisture meter (probably on the plant table) before watering. If you can\'t find it, check soil with your finger about 1 inch deep.</li>' +
+        '<li>If a plant\'s soil feels damp, give it a smaller amount of water than usual or just skip it. Let me know which ones you adjusted so I can re-check when I\'m back.</li>' +
+        '<li>If anything looks really wrong, text me!</li></ul></div>' +
+        bodyHTML + '</div></body></html>';
     }
 
     function buildEmptyGuideHTML(visitDate) {
       const visitDateNice = formatDateNice(visitDate);
-      return '<!DOCTYPE html>\n' +
-        '<html><head><meta charset="UTF-8"><title>Plant care visit</title>\n' +
-        '<style>body { font-family: system-ui, sans-serif; max-width: 600px; margin: 48px auto; padding: 0 16px; text-align: center; color: #555; }</style>\n' +
-        '</head><body>\n' +
-        '<h1>Plant care visit</h1>\n' +
-        '<p>' + visitDateNice + '</p>\n' +
-        '<p>No plants need attention around this date.</p>\n' +
-        '<p>If you want to thank your sitter anyway, you can pick a different visit date and regenerate.</p>\n' +
-        '</body></html>';
+      return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Plant care visit</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400&display=swap" rel="stylesheet">' +
+        '<style>' + getPaletteRootBlock() +
+        ' body { font-family: \'Geist Mono\', monospace; max-width: 600px; margin: 64px auto; padding: 0 20px; text-align: center; color: var(--c-text-muted); background: var(--c-bg-top); line-height: 1.55; } h1 { font-weight: 400; font-size: 30px; color: var(--c-text); }</style>' +
+        '</head><body><h1>Plant care visit</h1><p>' + visitDateNice + '</p>' +
+        '<p>No plants need attention around this date.</p></body></html>';
     }
 
     async function generateSitter() {
@@ -786,15 +1447,10 @@
 
       const plantPayload = relevantPlants.map(function (p) {
         return {
-          id: p.id,
-          name: p.name,
-          species: p.species || "",
-          area: p.area || "",
-          watering_type: p.watering_type || "",
-          interval_days: p.interval_days,
-          last_watered: p.last_watered || "",
-          next_due: nextDueISO(p) || "",
-          notes: p.notes || "",
+          id: p.id, name: p.name, species: p.species || "",
+          area: p.area || "", watering_type: p.watering_type || "",
+          interval_days: p.interval_days, last_watered: p.last_watered || "",
+          next_due: nextDueISO(p) || "", notes: p.notes || "",
         };
       });
 
@@ -802,11 +1458,7 @@
         const response = await fetch("/api/sitter-guide", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plants: plantPayload,
-            visit_date: visitDate,
-            today: todayISO(),
-          }),
+          body: JSON.stringify({ plants: plantPayload, visit_date: visitDate, today: todayISO() }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Request failed");
@@ -851,6 +1503,7 @@
     bind("cancel-edit", "click", exitEditMode);
     bind("edit-btn", "click", function () { if (lastDetailPlantId) enterEditMode(lastDetailPlantId); });
     bind("delete-btn", "click", function () { if (lastDetailPlantId) deletePlant(lastDetailPlantId); });
+    bind("close-btn", "click", closeDetailDialog);
     bind("clear-selection", "click", clearSelection);
 
     document.querySelectorAll("#selection-bar [data-batch-status]").forEach(function (btn) {
@@ -873,7 +1526,7 @@
       const row = target.closest && target.closest("[data-plant-id]");
       if (!row) return;
       const plantId = row.dataset.plantId;
-      if (target.classList.contains("plant-name")) { showDetail(plantId); return; }
+      if (target.closest && target.closest(".plant-name-wrap")) { showDetail(plantId); return; }
       if (target.dataset && target.dataset.action === "toggle-select") {
         if (target.checked) selectedPlantIds.add(plantId);
         else selectedPlantIds.delete(plantId);
@@ -939,6 +1592,11 @@
           plants.push(plant);
           savePlants(plants);
           e.target.reset();
+          const photoFilename = document.getElementById("photo-filename");
+          if (photoFilename) {
+            photoFilename.textContent = "no file";
+            photoFilename.classList.add("is-empty");
+          }
           renderAll();
         }
       });
@@ -952,8 +1610,33 @@
       a.href = url; a.download = "plants.json"; a.click();
       URL.revokeObjectURL(url);
     });
+
+    bind("add-photo-btn", "click", function () {
+      const input = document.getElementById("photo-input");
+      if (input) input.click();
+    });
+    function setFilenameSpan(span, name) {
+      if (!span) return;
+      if (name) {
+        span.textContent = name;
+        span.classList.remove("is-empty");
+      } else {
+        span.textContent = "no file";
+        span.classList.add("is-empty");
+      }
+    }
+    bind("photo-input", "change", function (e) {
+      const file = e.target.files[0];
+      setFilenameSpan(document.getElementById("photo-filename"), file ? file.name : "");
+    });
+
+    bind("import-btn", "click", function () {
+      const input = document.getElementById("import-input");
+      if (input) input.click();
+    });
     bind("import-input", "change", function (e) {
       const file = e.target.files[0];
+      setFilenameSpan(document.getElementById("import-filename"), file ? file.name : "");
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function () {
