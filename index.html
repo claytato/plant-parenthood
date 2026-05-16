@@ -40,6 +40,10 @@
     .plant-actions .btn-selected-skip {
       background: #1976d2; color: #fff; border-color: #1976d2;
     }
+    .plant-actions .move-btn {
+      font-size: 13px; padding: 2px 6px; color: #888;
+    }
+    .plant-actions .move-btn:hover { color: #222; }
     .plant-checkbox { margin-right: 6px; transform: scale(1.2); cursor: pointer; }
     .area-actions { font-size: 12px; font-weight: normal; margin-left: 8px; }
     .area-actions button { font-size: 11px; padding: 2px 6px; margin-left: 2px; }
@@ -315,7 +319,7 @@
       });
     }
 
-    function plantRowHTML(plant) {
+    function plantRowHTML(plant, showReorder) {
       const dateToUse = selectedDate || todayISO();
       const status = dueStatus(plant, dateToUse);
       const isSelected = selectedPlantIds.has(plant.id);
@@ -333,6 +337,11 @@
         ? '<img class="plant-thumb" src="' + plant.photo + '" alt="" />'
         : '<span class="plant-thumb"></span>';
 
+      const reorderHTML = showReorder
+        ? '<button type="button" class="move-btn" data-action="move-up" title="Move up within area">&uarr;</button>' +
+          '<button type="button" class="move-btn" data-action="move-down" title="Move down within area">&darr;</button>'
+        : '';
+
       return (
         '<div class="plant-row" data-plant-id="' + escapeHtml(plant.id) + '">' +
           '<input type="checkbox" class="plant-checkbox" data-action="toggle-select"' + (isSelected ? ' checked' : '') + ' />' +
@@ -347,12 +356,13 @@
           '<div class="plant-actions">' +
             '<button type="button" class="' + wateredClass + '" data-action="water" data-status="watered">' + wateredLabel + '</button>' +
             '<button type="button" class="' + skipClass + '" data-action="water" data-status="skipped_damp">' + skipLabel + '</button>' +
+            reorderHTML +
           '</div>' +
         '</div>'
       );
     }
 
-    function renderGroupedByArea(plants, container, emptyMessage) {
+    function renderGroupedByArea(plants, container, emptyMessage, showReorder) {
       if (!container) return;
       if (plants.length === 0) {
         container.innerHTML = '<p style="color:#888;">' + emptyMessage + '</p>';
@@ -372,17 +382,17 @@
             '<button type="button" data-area-action="deselect" data-area="' + areaSafe + '">Deselect</button>' +
           '</span>';
         return '<h3>' + areaSafe + headerActions + '</h3>' +
-          byArea[area].map(plantRowHTML).join("");
+          byArea[area].map(function (p) { return plantRowHTML(p, showReorder); }).join("");
       }).join("");
     }
 
     function renderToday() {
       const dateToUse = selectedDate || todayISO();
       const needs = loadPlants().filter(function (p) { return dueStatus(p, dateToUse).needsWater; });
-      renderGroupedByArea(needs, document.getElementById("today-list"), "Nothing needs watering by this date.");
+      renderGroupedByArea(needs, document.getElementById("today-list"), "Nothing needs watering by this date.", false);
     }
     function renderAllPlants() {
-      renderGroupedByArea(loadPlants(), document.getElementById("all-plants"), "No plants yet. Add one below.");
+      renderGroupedByArea(loadPlants(), document.getElementById("all-plants"), "No plants yet. Add one below.", true);
     }
     function updateSelectionBar() {
       const bar = document.getElementById("selection-bar");
@@ -418,6 +428,33 @@
         plant.history.unshift({ date: dateToUse, status: status });
       }
       recomputePlantState(plant);
+      savePlants(plants);
+      renderAll();
+    }
+
+    // Move a plant up or down within its area. Swaps with the nearest adjacent
+    // plant in the same area in the underlying plants array; renderGroupedByArea
+    // displays plants in array order within each area, so the swap is reflected
+    // visually. The same array order also drives the sitter guide output.
+    function moveInArea(plantId, direction) {
+      const plants = loadPlants();
+      const plantIdx = plants.findIndex(function (p) { return p.id === plantId; });
+      if (plantIdx === -1) return;
+      const area = plants[plantIdx].area;
+      let swapIdx = -1;
+      if (direction === "up") {
+        for (let i = plantIdx - 1; i >= 0; i--) {
+          if (plants[i].area === area) { swapIdx = i; break; }
+        }
+      } else {
+        for (let i = plantIdx + 1; i < plants.length; i++) {
+          if (plants[i].area === area) { swapIdx = i; break; }
+        }
+      }
+      if (swapIdx === -1) return;
+      const tmp = plants[plantIdx];
+      plants[plantIdx] = plants[swapIdx];
+      plants[swapIdx] = tmp;
       savePlants(plants);
       renderAll();
     }
@@ -541,7 +578,7 @@
       if (el) el.addEventListener(event, handler);
     }
 
-    // --- Suggest care info (Tier 3, Claude-powered) ---
+    // --- Suggest care info ---
     async function suggestCare() {
       const speciesInput = document.getElementById("species-input");
       const species = (speciesInput.value || "").trim();
@@ -592,7 +629,7 @@
     }
     bind("suggest-care-btn", "click", suggestCare);
 
-    // --- Sitter guide (Tier 3, Claude-powered) ---
+    // --- Sitter guide ---
     function buildSitterGuideHTML(plants, briefsById, visitDate) {
       function esc(str) {
         if (str == null) return "";
@@ -603,20 +640,22 @@
 
       const visitDateNice = formatDateNice(visitDate);
 
-      // Group: area -> watering_type -> [plants]
+      // Group: area -> watering_type -> [plants], all preserving array order
       const grouped = {};
+      const areaOrder = [];
+      const methodOrder = {};
       for (const plant of plants) {
         const area = plant.area || "(no area)";
         const method = plant.watering_type || "(no method)";
-        if (!grouped[area]) grouped[area] = {};
-        if (!grouped[area][method]) grouped[area][method] = [];
+        if (!grouped[area]) { grouped[area] = {}; areaOrder.push(area); methodOrder[area] = []; }
+        if (!grouped[area][method]) { grouped[area][method] = []; methodOrder[area].push(method); }
         grouped[area][method].push(plant);
       }
 
       let bodyHTML = "";
-      for (const area of Object.keys(grouped)) {
+      for (const area of areaOrder) {
         bodyHTML += '<h2>' + esc(area) + '</h2>';
-        for (const method of Object.keys(grouped[area])) {
+        for (const method of methodOrder[area]) {
           bodyHTML += '<h3>' + esc(method) + '</h3>';
           for (const plant of grouped[area][method]) {
             const brief = briefsById[plant.id] || "(no instructions)";
@@ -683,7 +722,7 @@
         '<p><strong>Hi! Thanks so much for watering my plants.</strong></p>\n' +
         '<ul>\n' +
         '<li>Use the moisture meter (probably on the plant table) before watering. If you can\'t find it, check soil with your finger about 1 inch deep.</li>\n' +
-        '<li>Skip plants where the soil feels damp &mdash; overwatering kills more plants than underwatering.</li>\n' +
+        '<li>If a plant\'s soil feels damp, give it a smaller amount of water than usual or just skip it. Let me know which ones you adjusted so I can re-check when I\'m back.</li>\n' +
         '<li>If anything looks really wrong, text me!</li>\n' +
         '</ul>\n' +
         '</div>\n' +
@@ -724,8 +763,6 @@
         return;
       }
 
-      // Filter to plants needing attention near visit date
-      // (overdue, due-by-visit, or due within 5 days after visit)
       const lookAhead = addDays(visitDate, 5);
       const relevantPlants = allPlants.filter(function (p) {
         const next = nextDueISO(p);
@@ -843,6 +880,8 @@
         updateSelectionBar();
         return;
       }
+      if (target.dataset && target.dataset.action === "move-up") { moveInArea(plantId, "up"); return; }
+      if (target.dataset && target.dataset.action === "move-down") { moveInArea(plantId, "down"); return; }
       if (target.dataset && target.dataset.action === "water") waterPlant(plantId, target.dataset.status);
     });
 
