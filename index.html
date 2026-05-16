@@ -39,7 +39,7 @@
       --radius-lg: 16px;
       --radius-pill: 999px;
 
-      --noise: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='2' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.86   0 0 0 0 0.86   0 0 0 0 0.88   0 0 0 0.65 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");
+      --noise: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.98   0 0 0 0 0.98   0 0 0 0 0.98   0 0 0 0.75 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");
 
       --hover-pink: linear-gradient(to left, var(--c-pink-dark), var(--c-pink-light));
 
@@ -526,9 +526,9 @@
     #selection-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
       background-color: var(--c-bg-top);
-      background-image: var(--noise);
-      background-size: 320px 320px;
-      background-repeat: repeat;
+      background-image: var(--noise), linear-gradient(to bottom, var(--c-bg-bottom), var(--c-bg-top));
+      background-size: 320px 320px, 100% 100%;
+      background-repeat: repeat, no-repeat;
       color: var(--c-text);
       padding: 12px 20px;
       display: flex;
@@ -539,14 +539,13 @@
       transform: translateY(110%);
       transition: transform 220ms ease-out;
       box-shadow: 0 -4px 24px rgba(82, 85, 96, 0.18);
-      border-top: 1.5px solid var(--c-text);
     }
     #selection-bar.visible { transform: translateY(0); }
     #selection-bar button {
       font-size: 13px;
       padding: 4px 14px;
       color: var(--c-text);
-      border: 1.5px solid var(--c-text);
+      border: none;
       background-color: transparent;
     }
     #selection-bar [data-batch-status="watered"] {
