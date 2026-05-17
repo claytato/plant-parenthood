@@ -141,7 +141,7 @@
 
     p { margin: 10px 0; }
     a { color: var(--c-info-blue); }
-    label { font-weight: 400; font-size: 13px; }
+    label, .field-label { font-weight: 400; font-size: 13px; }
 
     .h1-doodle, .h2-doodle, .info-icon {
       filter: url(#pencil);
@@ -160,6 +160,7 @@
       color: var(--c-text);
       line-height: 1.5;
       vertical-align: middle;
+      max-width: 100%;
     }
     input[name="interval_days"] { width: 90px; }
     input[name="name"], input[name="species"] { min-width: 200px; }
@@ -193,7 +194,7 @@
       font-size: 13px;
       padding: 2px 11px;
       border-radius: var(--radius-pill);
-      border: 1.5px solid var(--c-border-strong);
+      border: 1.5px solid var(--c-border);
       background: rgba(255, 255, 255, 0.45);
       color: var(--c-text);
       cursor: var(--cursor-blue), pointer;
@@ -458,6 +459,23 @@
       color: var(--c-text-ghost);
       font-style: italic;
     }
+    /* Hide the "no file" placeholder for file pickers when empty */
+    #photo-filename.is-empty,
+    #import-filename.is-empty { display: none; }
+
+    /* Form rows lay out their inline controls with consistent vertical/horizontal spacing.
+       Without this, controls that wrap to the next line have no breathing room. */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+    }
+    .form-row > label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .empty-list {
       color: var(--c-text-ghost);
@@ -577,29 +595,109 @@
     }
 
     @media (max-width: 600px) {
-      body { margin: 16px auto; padding: 0 16px 110px; font-size: 14px; }
-      h1 { font-size: 30px; margin-bottom: 24px; }
+      html, body { overflow-x: hidden; }
+      body {
+        margin: 16px auto;
+        padding: 0 16px 120px;
+        font-size: 14px;
+      }
+      h1, h2, h3 { overflow-wrap: break-word; }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 24px;
+        justify-content: center;
+        text-align: center;
+      }
       .h1-doodle { width: 34px; height: 34px; }
-      h2 { font-size: 20px; margin-top: 68px; }
+      h2 {
+        font-size: 20px;
+        margin-top: 56px;
+      }
       .h2-doodle { width: 28px; height: 28px; }
       h3 { font-size: 15px; margin-top: 20px; }
-      .area-group .plant-row { margin-left: 16px; }
-      .plant-row { padding: 8px 16px; gap: 10px; }
-      .plant-thumb { width: 44px; height: 44px; }
-      .plant-actions { gap: 4px; }
-      .plant-actions button { font-size: 10px; padding: 2px 9px; }
-      input[name="interval_days"] { width: 80px; }
+
+      /* Inputs, standard buttons, and radio pills all share the same compact size
+         so they don't overshadow the field labels.
+         (Note: <16px font-size on single-line inputs lets iOS Safari zoom in on focus.) */
+      input[type="text"],
+      input[type="number"],
+      input[type="date"],
+      input[name] {
+        font-size: 12px;
+        padding: 4px 12px;
+        min-width: 0;
+        max-width: 100%;
+      }
+      /* Notes textarea keeps its larger height but matches the 12px font */
+      textarea {
+        font-size: 12px;
+        padding: 10px 16px;
+        min-width: 0;
+        max-width: 100%;
+      }
+      input[name="name"],
+      input[name="species"] {
+        min-width: 0;
+      }
+      input[name="interval_days"] { width: 100px; }
       textarea[name="notes"] { width: 100%; }
+
+      button {
+        font-size: 12px;
+        padding: 4px 12px;
+      }
+      button[type="submit"] {
+        padding: 6px 14px;
+        font-size: 12px;
+      }
+      .radio-buttons label {
+        font-size: 12px;
+        padding: 4px 12px;
+      }
+
+      .area-group .plant-row { margin-left: 12px; }
+      .plant-row { padding: 8px 14px; gap: 10px; }
+      .plant-thumb { width: 44px; height: 44px; }
+      .plant-actions { gap: 6px; }
+      .plant-actions button {
+        font-size: 12px;
+        padding: 4px 11px;
+      }
+
+      /* Dialog adapts to viewport instead of clipping */
+      dialog {
+        width: calc(100vw - 24px);
+        max-width: calc(100vw - 24px);
+        max-height: 92vh;
+        padding: 40px 20px 20px;
+        border-radius: 90px 90px 14px 14px;
+      }
+      .detail-photo { width: 100px; height: 100px; }
+      .detail-actions { gap: 6px; }
+      .detail-actions button { font-size: 13px; padding: 6px 14px; }
+
       #selection-bar { padding: 10px 14px; gap: 8px; }
-      #selection-bar button { font-size: 12px; padding: 3px 12px; }
+      #selection-bar button { font-size: 13px; padding: 6px 14px; }
     }
 
     @media (max-width: 420px) {
-      h1 { font-size: 26px; }
-      .plant-row { flex-wrap: wrap; }
+      body { padding: 0 12px 120px; }
+      h1 { font-size: 24px; gap: 10px; }
+      .h1-doodle { width: 30px; height: 30px; }
+      h2 { font-size: 18px; margin-top: 48px; gap: 8px; }
+      .h2-doodle { width: 24px; height: 24px; }
+      .plant-row { flex-wrap: wrap; padding: 8px 12px; }
       .plant-info { flex-basis: calc(100% - 60px); }
-      .plant-actions { flex-basis: 100%; justify-content: flex-end; padding-left: 60px; }
+      .plant-actions {
+        flex-basis: 100%;
+        justify-content: flex-start;
+        padding-left: 0;
+      }
       .area-group .plant-row { margin-left: 8px; }
+      dialog {
+        padding: 32px 16px 16px;
+        border-radius: 60px 60px 12px 12px;
+      }
     }
   </style>
 </head>
@@ -644,8 +742,9 @@
     </svg>
     Watering schedule
   </h2>
-  <p>
-    Show plants due by <input type="date" id="watering-date" />
+  <p class="form-row">
+    <span>Show plants due by</span>
+    <input type="date" id="watering-date" />
     <button type="button" id="reset-date" class="pink-hover">Today</button>
   </p>
   <div id="today-list"></div>
@@ -666,7 +765,7 @@
     Sitter guide
   </h2>
   <p>Generates a printable guide for one sitter visit. Includes plants needing attention around that date, grouped by area and watering method.</p>
-  <p>
+  <p class="form-row">
     <label>Visit date <input type="date" id="visit-date" /></label>
     <button type="button" id="generate-sitter-btn" class="pink-hover">Generate sitter guide</button>
     <span id="sitter-status"></span>
@@ -706,22 +805,22 @@
     <button type="button" id="cancel-edit">Cancel edit</button>
   </div>
   <form id="add-form">
-    <p>
+    <p class="form-row">
       <label>Name <input name="name" required /></label>
       <button type="button" id="add-photo-btn" class="pink-hover">Add a photo</button>
       <span id="photo-filename" class="filename is-empty">no file</span>
       <input type="file" id="photo-input" name="photo" accept="image/*" style="display:none;" />
     </p>
-    <p id="current-photo-row" style="display:none;">
+    <p id="current-photo-row" class="form-row" style="display:none;">
       Current photo: <span id="current-photo"></span>
     </p>
-    <p>
+    <p class="form-row">
       <label>Species <input name="species" id="species-input" /></label>
       <button type="button" id="suggest-care-btn" class="pink-hover">Suggest care info</button>
       <span id="suggest-status" style="display:none;"></span>
     </p>
     <p>
-      Area
+      <span class="field-label">Area</span>
       <button type="button" class="clear-radios-btn" data-clear-group="area">Clear</button>
       <br />
       <span class="radio-buttons">
@@ -742,7 +841,7 @@
       </span>
     </p>
     <p>
-      Watering type
+      <span class="field-label">Watering type</span>
       <button type="button" class="clear-radios-btn" data-clear-group="watering_type">Clear</button>
       <br />
       <span class="radio-buttons">
@@ -756,13 +855,13 @@
         <label for="wt-change">Change water</label>
       </span>
     </p>
-    <p><label>Watering interval (days) <input name="interval_days" type="number" min="1" step="1" inputmode="numeric" pattern="[0-9]*" required /></label></p>
+    <p class="form-row"><label>Watering interval (days) <input name="interval_days" type="number" min="1" step="1" inputmode="numeric" pattern="[0-9]*" required /></label></p>
     <p>
       <label>Notes<br />
         <textarea name="notes" rows="3" placeholder="Light needs, soil, common issues..."></textarea>
       </label>
     </p>
-    <p><label>Last watered <input name="last_watered" type="date" required /></label></p>
+    <p class="form-row"><label>Last watered <input name="last_watered" type="date" required /></label></p>
     <button type="submit" id="submit-btn">Save and add plant</button>
   </form>
 
@@ -774,7 +873,7 @@
     </svg>
     Backup
   </h2>
-  <p>
+  <p class="form-row">
     <button id="export-btn" class="pink-hover">Export Data</button>
     <button id="import-btn" class="pink-hover">Import Data</button>
     <span id="import-filename" class="filename is-empty">no file</span>
