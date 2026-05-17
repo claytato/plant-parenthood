@@ -660,44 +660,54 @@
       }
 
       .area-group .plant-row { margin-left: 12px; }
-      /* Mobile plant row: 3-column pill. Eye stays inline with name (default flow);
-         status sits below (the existing <br> breaks the line). */
+      /* Mobile plant row: a 5/6-column grid pill, left → right:
+           checkbox | photo | name-over-status | eye | watered-over-skip | up-over-down
+         Nested wrappers (plant-info, plant-name-wrap, plant-actions, move-btns) use
+         display: contents so their children become direct grid items of the row. */
       .plant-row {
-        display: flex;
+        display: grid;
         align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
+        column-gap: 8px;
+        row-gap: 2px;
+        padding: 10px 14px;
         border-radius: var(--radius-pill);
+        grid-template-columns: auto auto 1fr auto auto;
+        grid-template-areas:
+          "checkbox photo name   eye watered"
+          "checkbox photo status eye skip";
       }
-      /* Rows that include reorder arrows get extra bottom padding so the
-         absolutely-positioned .move-btns sits clear of the right-column buttons. */
+      /* Rows with reorder arrows add a sixth column on the right */
       .plant-row:has(.move-btns) {
-        position: relative;
-        padding-bottom: 32px;
+        grid-template-columns: auto auto 1fr auto auto auto;
+        grid-template-areas:
+          "checkbox photo name   eye watered up"
+          "checkbox photo status eye skip    down";
       }
-      .plant-thumb { width: 44px; height: 44px; }
+      .plant-thumb { grid-area: photo; width: 40px; height: 40px; }
+      .plant-checkbox { grid-area: checkbox; }
 
-      /* Right column: Watered on top, Skip below (arrows are pulled out, see below). */
-      .plant-actions {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
-        flex-shrink: 0;
-      }
+      .plant-info,
+      .plant-name-wrap,
+      .plant-actions,
+      .move-btns { display: contents; }
+      .plant-info br { display: none; }
+
+      .plant-name { grid-area: name; align-self: end; min-width: 0; }
+      .info-icon { grid-area: eye; align-self: center; }
+      .plant-status-line { grid-area: status; align-self: start; min-width: 0; }
+
+      .plant-actions > button[data-status="watered"] { grid-area: watered; }
+      .plant-actions > button[data-status="skipped_damp"] { grid-area: skip; }
+      .move-btn[data-action="move-up"] { grid-area: up; }
+      .move-btn[data-action="move-down"] { grid-area: down; }
+
       .plant-actions button {
-        font-size: 12px;
-        padding: 4px 11px;
+        font-size: 11px;
+        padding: 4px 10px;
       }
-      /* Arrows pinned to the bottom-center of the pill, out of the action column flow */
-      .move-btns {
-        position: absolute;
-        bottom: 6px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 4px;
-        justify-content: center;
+      .plant-actions .move-btn {
+        font-size: 12px;
+        padding: 2px 6px;
       }
 
       /* Dialog adapts to viewport. Switch to plain block layout on mobile —
