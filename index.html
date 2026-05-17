@@ -656,7 +656,9 @@
       }
 
       .area-group .plant-row { margin-left: 12px; }
-      .plant-row { padding: 8px 14px; gap: 10px; }
+      /* Pill (999px) becomes an oval that cuts into corners when the row wraps tall.
+         Use a moderate rounded-rectangle radius instead so content stays contained. */
+      .plant-row { padding: 8px 14px; gap: 10px; border-radius: 22px; }
       .plant-thumb { width: 44px; height: 44px; }
       .plant-actions { gap: 6px; }
       .plant-actions button {
@@ -664,16 +666,31 @@
         padding: 4px 11px;
       }
 
-      /* Dialog adapts to viewport instead of clipping */
+      /* Dialog adapts to viewport. Switch to plain block layout on mobile —
+         the desktop "sticky header + inner-scroll" pattern collapses to zero height
+         here because the dialog has no explicit height. Let the whole dialog scroll. */
       dialog {
         width: calc(100vw - 24px);
         max-width: calc(100vw - 24px);
         max-height: 92vh;
-        padding: 40px 20px 20px;
-        border-radius: 90px 90px 14px 14px;
+        padding: 28px 20px 20px;
+        border-radius: 28px;
+        overflow-y: auto;
+      }
+      dialog[open] { display: block; }
+      #plant-detail-content { display: block; }
+      .detail-sticky { padding-bottom: 8px; }
+      .detail-scroll {
+        display: block;
+        flex: none;
+        overflow: visible;
+        padding-right: 0;
       }
       .detail-photo { width: 100px; height: 100px; }
-      .detail-actions { gap: 6px; }
+      .detail-actions {
+        gap: 6px;
+        margin-top: 18px;
+      }
       .detail-actions button { font-size: 13px; padding: 6px 14px; }
 
       #selection-bar { padding: 10px 14px; gap: 8px; }
@@ -686,17 +703,22 @@
       .h1-doodle { width: 30px; height: 30px; }
       h2 { font-size: 18px; margin-top: 48px; gap: 8px; }
       .h2-doodle { width: 24px; height: 24px; }
-      .plant-row { flex-wrap: wrap; padding: 8px 12px; }
+      .plant-row {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        border-radius: 20px;
+        row-gap: 8px;
+      }
       .plant-info { flex-basis: calc(100% - 60px); }
       .plant-actions {
         flex-basis: 100%;
         justify-content: flex-start;
-        padding-left: 0;
+        padding-left: 56px;
       }
       .area-group .plant-row { margin-left: 8px; }
       dialog {
-        padding: 32px 16px 16px;
-        border-radius: 60px 60px 12px 12px;
+        padding: 24px 16px 16px;
+        border-radius: 24px;
       }
     }
   </style>
