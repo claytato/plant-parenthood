@@ -660,12 +660,15 @@
       }
 
       .area-group .plant-row { margin-left: 12px; }
-      /* Mobile plant row: left side is checkbox + photo (each its own column,
-         vertically centered across all three right-side rows). Right side is
-         3 rows: name on top spanning everything, then three stacked pairs
-         (eye/status, watered/skip, up/down) sharing rows 2 and 3.
-         Nested wrappers use display: contents so their children become direct
-         grid items of .plant-row. */
+      /* Mobile plant row: 4 (or 5 with arrows) grid columns × 2 rows.
+           col 1: checkbox (spans both rows, centered)
+           col 2: name+eye (row 1) over photo (row 2). Name+eye also extends into col 3.
+           col 3: due/status (row 2, sits to the right of the photo)
+           col 4: Watered (row 1) over Skip damp (row 2)
+           col 5 (when present): Up (row 1) over Down (row 2)
+         .plant-info, .plant-actions, .move-btns use display: contents so their
+         children become direct grid items. .plant-name-wrap stays a real flex
+         item so name + eye remain inline with each other. */
       .plant-row {
         display: grid;
         align-items: center;
@@ -673,39 +676,30 @@
         row-gap: 3px;
         padding: 10px 14px;
         border-radius: var(--radius-pill);
-        grid-template-columns: auto auto auto auto;
+        grid-template-columns: auto 44px auto auto;
         grid-template-areas:
-          "checkbox photo name   name"
-          "checkbox photo eye    watered"
-          "checkbox photo status skip";
+          "checkbox name   name    watered"
+          "checkbox photo  status  skip";
       }
       .plant-row:has(.move-btns) {
-        grid-template-columns: auto auto auto auto auto;
+        grid-template-columns: auto 44px auto auto auto;
         grid-template-areas:
-          "checkbox photo name   name    name"
-          "checkbox photo eye    watered up"
-          "checkbox photo status skip    down";
+          "checkbox name   name    watered up"
+          "checkbox photo  status  skip    down";
       }
       .plant-thumb { grid-area: photo; width: 44px; height: 44px; }
       .plant-checkbox { grid-area: checkbox; }
 
       .plant-info,
-      .plant-name-wrap,
       .plant-actions,
       .move-btns { display: contents; }
       .plant-info br { display: none; }
 
-      .plant-name {
+      .plant-name-wrap {
         grid-area: name;
         justify-self: start;
-        align-self: center;
-        min-width: 0;
-        padding-bottom: 2px;
-      }
-      .info-icon {
-        grid-area: eye;
         align-self: end;
-        justify-self: start;
+        min-width: 0;
       }
       .plant-status-line {
         grid-area: status;
