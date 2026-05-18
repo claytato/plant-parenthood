@@ -660,30 +660,33 @@
       }
 
       .area-group .plant-row { margin-left: 12px; }
-      /* Mobile plant row: a 5/6-column grid pill, left → right:
-           checkbox | photo | name-over-status | eye | watered-over-skip | up-over-down
-         Nested wrappers (plant-info, plant-name-wrap, plant-actions, move-btns) use
-         display: contents so their children become direct grid items of the row. */
+      /* Mobile plant row: left side is checkbox + photo (each its own column,
+         vertically centered across all three right-side rows). Right side is
+         3 rows: name on top spanning everything, then three stacked pairs
+         (eye/status, watered/skip, up/down) sharing rows 2 and 3.
+         Nested wrappers use display: contents so their children become direct
+         grid items of .plant-row. */
       .plant-row {
         display: grid;
         align-items: center;
         column-gap: 8px;
-        row-gap: 2px;
+        row-gap: 3px;
         padding: 10px 14px;
         border-radius: var(--radius-pill);
-        grid-template-columns: auto auto 1fr auto auto;
+        grid-template-columns: auto auto auto auto;
         grid-template-areas:
-          "checkbox photo name   eye watered"
-          "checkbox photo status eye skip";
+          "checkbox photo name   name"
+          "checkbox photo eye    watered"
+          "checkbox photo status skip";
       }
-      /* Rows with reorder arrows add a sixth column on the right */
       .plant-row:has(.move-btns) {
-        grid-template-columns: auto auto 1fr auto auto auto;
+        grid-template-columns: auto auto auto auto auto;
         grid-template-areas:
-          "checkbox photo name   eye watered up"
-          "checkbox photo status eye skip    down";
+          "checkbox photo name   name    name"
+          "checkbox photo eye    watered up"
+          "checkbox photo status skip    down";
       }
-      .plant-thumb { grid-area: photo; width: 40px; height: 40px; }
+      .plant-thumb { grid-area: photo; width: 44px; height: 44px; }
       .plant-checkbox { grid-area: checkbox; }
 
       .plant-info,
@@ -692,14 +695,41 @@
       .move-btns { display: contents; }
       .plant-info br { display: none; }
 
-      .plant-name { grid-area: name; align-self: end; min-width: 0; }
-      .info-icon { grid-area: eye; align-self: center; }
-      .plant-status-line { grid-area: status; align-self: start; min-width: 0; }
+      .plant-name {
+        grid-area: name;
+        justify-self: start;
+        align-self: center;
+        min-width: 0;
+        padding-bottom: 2px;
+      }
+      .info-icon {
+        grid-area: eye;
+        align-self: end;
+        justify-self: start;
+      }
+      .plant-status-line {
+        grid-area: status;
+        align-self: start;
+        justify-self: start;
+        min-width: 0;
+      }
 
-      .plant-actions > button[data-status="watered"] { grid-area: watered; }
-      .plant-actions > button[data-status="skipped_damp"] { grid-area: skip; }
-      .move-btn[data-action="move-up"] { grid-area: up; }
-      .move-btn[data-action="move-down"] { grid-area: down; }
+      .plant-actions > button[data-status="watered"] {
+        grid-area: watered;
+        align-self: end;
+      }
+      .plant-actions > button[data-status="skipped_damp"] {
+        grid-area: skip;
+        align-self: start;
+      }
+      .move-btn[data-action="move-up"] {
+        grid-area: up;
+        align-self: end;
+      }
+      .move-btn[data-action="move-down"] {
+        grid-area: down;
+        align-self: start;
+      }
 
       .plant-actions button {
         font-size: 11px;
