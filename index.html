@@ -414,14 +414,14 @@
       padding: 0;
     }
     .overdue {
-      display: inline-block;
-      padding: 1px 10px;
-      border-radius: var(--radius-pill);
-      font-size: 11px;
+      display: inline;
+      color: var(--c-coral);
       font-weight: 500;
-      border: 1.5px solid var(--c-text);
-      background-image: var(--noise), linear-gradient(to right, var(--c-coral-dark), var(--c-coral-light));
-      color: var(--c-text);
+      font-size: 12px;
+      background: none;
+      border: none;
+      padding: 0;
+      border-radius: 0;
     }
 
     /* Edit banner: plain inline text — Cancel edit button matches the small Select all / Clear pills */
@@ -660,35 +660,43 @@
       }
 
       .area-group .plant-row { margin-left: 12px; }
-      /* Mobile plant row: 4 (or 5 with arrows) grid columns × 2 rows.
-           col 1: checkbox (spans both rows, centered)
-           col 2: name+eye (row 1) over photo (row 2). Name+eye also extends into col 3.
-           col 3: due/status (row 2, sits to the right of the photo)
-           col 4: Watered (row 1) over Skip damp (row 2)
-           col 5 (when present): Up (row 1) over Down (row 2)
+      /* Mobile plant row, 2 rows × 4 (or 5) columns:
+           col 1: checkbox     (spans both rows, centered)
+           col 2: photo        (spans both rows, centered) — sits right next to checkbox
+           col 3: name+eye (top) over due/status (bottom)
+           col 4: Watered (top) over Skip damp (bottom)
+           col 5 (when present): Up (top) over Down (bottom), tucked close to col 4
          .plant-info, .plant-actions, .move-btns use display: contents so their
-         children become direct grid items. .plant-name-wrap stays a real flex
-         item so name + eye remain inline with each other. */
+         children become direct grid items. .plant-name-wrap stays intact so the
+         eye stays inline next to the name. */
       .plant-row {
         display: grid;
         align-items: center;
-        column-gap: 8px;
-        row-gap: 3px;
-        padding: 10px 14px;
+        column-gap: 6px;
+        row-gap: 2px;
+        padding: 8px 12px;
         border-radius: var(--radius-pill);
-        grid-template-columns: auto 44px auto auto;
+        grid-template-columns: auto auto 1fr auto;
         grid-template-areas:
-          "checkbox name   name    watered"
-          "checkbox photo  status  skip";
+          "checkbox photo name   watered"
+          "checkbox photo status skip";
       }
       .plant-row:has(.move-btns) {
-        grid-template-columns: auto 44px auto auto auto;
+        grid-template-columns: auto auto 1fr auto auto;
         grid-template-areas:
-          "checkbox name   name    watered up"
-          "checkbox photo  status  skip    down";
+          "checkbox photo name   watered up"
+          "checkbox photo status skip    down";
       }
-      .plant-thumb { grid-area: photo; width: 44px; height: 44px; }
-      .plant-checkbox { grid-area: checkbox; }
+      .plant-thumb { grid-area: photo; width: 40px; height: 40px; }
+      .plant-checkbox {
+        grid-area: checkbox;
+        width: 15px;
+        height: 15px;
+      }
+      .plant-checkbox:checked::after {
+        width: 6px;
+        height: 6px;
+      }
 
       .plant-info,
       .plant-actions,
@@ -703,8 +711,8 @@
       }
       .plant-status-line {
         grid-area: status;
-        align-self: start;
         justify-self: start;
+        align-self: start;
         min-width: 0;
       }
 
@@ -716,22 +724,25 @@
         grid-area: skip;
         align-self: start;
       }
+      /* Pull the up/down arrows visually closer to the Watered/Skip column */
       .move-btn[data-action="move-up"] {
         grid-area: up;
         align-self: end;
+        margin-left: -3px;
       }
       .move-btn[data-action="move-down"] {
         grid-area: down;
         align-self: start;
+        margin-left: -3px;
       }
 
       .plant-actions button {
         font-size: 11px;
-        padding: 4px 10px;
+        padding: 3px 8px;
       }
       .plant-actions .move-btn {
         font-size: 12px;
-        padding: 2px 6px;
+        padding: 2px 4px;
       }
 
       /* Dialog adapts to viewport. Switch to plain block layout on mobile —
