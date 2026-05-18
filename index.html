@@ -708,7 +708,11 @@
         justify-self: start;
         align-self: end;
         min-width: 0;
+        overflow: hidden;
+        max-width: 100%;
       }
+      /* Single line — JS (fitPlantNames) shrinks the font-size if it overflows */
+      .plant-name { white-space: nowrap; }
       .plant-status-line {
         grid-area: status;
         justify-self: start;
@@ -747,13 +751,14 @@
 
       /* Dialog adapts to viewport. Switch to plain block layout on mobile —
          the desktop "sticky header + inner-scroll" pattern collapses to zero height
-         here because the dialog has no explicit height. Let the whole dialog scroll. */
+         here because the dialog has no explicit height. Let the whole dialog scroll.
+         Dome top is preserved; padding-top clears the curve so the photo isn't clipped. */
       dialog {
         width: calc(100vw - 24px);
         max-width: calc(100vw - 24px);
         max-height: 92vh;
-        padding: 28px 20px 20px;
-        border-radius: 28px;
+        padding: 56px 20px 20px;
+        border-radius: 200px 200px 16px 16px;
         overflow-y: auto;
       }
       dialog[open] { display: block; }
@@ -801,8 +806,8 @@
       .plant-thumb { width: 40px; height: 40px; }
       .area-group .plant-row { margin-left: 8px; }
       dialog {
-        padding: 24px 16px 16px;
-        border-radius: 24px;
+        padding: 48px 16px 16px;
+        border-radius: 160px 160px 14px 14px;
       }
     }
   </style>
@@ -1247,15 +1252,37 @@
         if (c) c.textContent = count + " selected";
       }
     }
+    function fitPlantNames() {
+      const names = document.querySelectorAll('.plant-row .plant-name');
+      const isMobile = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+      if (!isMobile) {
+        names.forEach(function (name) { name.style.fontSize = ''; });
+        return;
+      }
+      names.forEach(function (name) {
+        name.style.fontSize = '';
+        const wrap = name.parentElement;
+        if (!wrap) return;
+        let fontSize = parseFloat(getComputedStyle(name).fontSize);
+        const minFontSize = 9;
+        let i = 0;
+        while (wrap.scrollWidth > wrap.clientWidth + 1 && fontSize > minFontSize && i++ < 20) {
+          fontSize -= 0.5;
+          name.style.fontSize = fontSize + 'px';
+        }
+      });
+    }
     function renderAll() {
       try {
         renderToday();
         renderAllPlants();
         updateSelectionBar();
+        fitPlantNames();
       } catch (err) {
         console.error("renderAll failed:", err);
       }
     }
+    window.addEventListener('resize', fitPlantNames);
 
     function waterPlant(plantId, status) {
       const dateToUse = selectedDate || todayISO();
